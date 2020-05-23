@@ -1,0 +1,203 @@
+Taxon ID	Label	Label Source	IEDB Synonyms	Comment	Base Label	NCBI Label	NCBI Singular	Singular Usage	Familiar	Familiar Source	Familiar Usage	IEDB Preferred													
+1	Root	NCBI Taxonomy scientific name			Root	Root																			
+81077	Artificial sequence	NCBI Taxonomy scientific name			Artificial sequence	Artificial sequence																			
+36549	Plasmid	singular of NCBI Taxonomy scientific name			Plasmid	Plasmids	Plasmid	http://en.wikipedia.org/wiki/Plasmid																	
+32644	Unidentified	NCBI Taxonomy scientific name			Unidentified	Unidentified																			
+2157	Archeobacterium	IEDB			Archeon	Archaea	Archeon	http://en.wikipedia.org/wiki/Archaeon				Archeobacterium
+2	Bacterium	singular of NCBI Taxonomy scientific name			Bacterium	Bacteria	Bacterium	http://en.wikipedia.org/wiki/Bacterium			
+201174	Actinobacterium	singular of NCBI Taxonomy scientific name			Actinobacterium	Actinobacteria	Actinobacterium	http://en.wiktionary.org/wiki/actinobacterium																	
+1763	Mycobacterium	NCBI Taxonomy scientific name			Mycobacterium	Mycobacterium																			
+1773	Mycobacterium tuberculosis	NCBI Taxonomy scientific name	M. tuberculosis,M tuberculosis,MTB,Tb		Mycobacterium tuberculosis	Mycobacterium tuberculosis																			
+91061	Bacillus [class]	IEDB			Bacilli	Bacilli					
+1386	Bacillus [genus]	IEDB			Bacillus	Bacillus					
+976	Bacteroidete	singular of NCBI Taxonomy scientific name			Bacteroidete	Bacteroidetes	Bacteroidete	http://www.ncbi.nlm.nih.gov/pubmed/19966289																	
+204428	Chlamydiae	NCBI Taxonomy scientific name			Chlamydiae	Chlamydiae																			
+186801	Clostridia	NCBI Taxonomy scientific name			Clostridia	Clostridia						
+1117	Cyanobacterium (blue-green alga)	singular of NCBI Taxonomy scientific name (singular of NCBI common name)			Cyanobacterium	Cyanobacteria	Cyanobacterium	http://en.wikipedia.org/wiki/Cyanobacterium	blue-green alga	singular of NCBI common name															
+1224	Proteobacterium (purple photosynthetic bacterium)	singular of NCBI Taxonomy scientific name (singular of NCBI common name)			Proteobacterium	Proteobacteria	Proteobacterium	http://en.wikipedia.org/wiki/Proteobacterium	purple photosynthetic bacterium	singular of NCBI common name															
+28211	Alphaproteobacterium	singular of NCBI Taxonomy scientific name			Alphaproteobacterium	Alphaproteobacteria	Alphaproteobacterium	http://en.wikipedia.org/wiki/Alphaproteobacterium			
+356	Rhizobiales	NCBI Taxonomy scientific name									
+766	Rickettsiales	NCBI Taxonomy scientific name									
+13687	Sphingomonas	NCBI Taxonomy scientific name			Sphingomonas	Sphingomonas
+28216	Betaproteobacterium	singular of NCBI Taxonomy scientific name			Betaproteobacterium	Betaproteobacteria	Betaproteobacterium				
+28221	Deltaproteobacterium	singular of NCBI Taxonomy scientific name			Deltaproteobacterium	Deltaproteobacteria	Deltaproteobacterium					
+29547	Epsilonproteobacterium	singular of NCBI Taxonomy scientific name			Epsilonproteobacterium	Epsilonproteobacteria	Epsilonproteobacterium					
+1236	Gammaproteobacterium	singular of NCBI Taxonomy scientific name			Gammaproteobacterium	Gammaproteobacteria	Gammaproteobacterium	http://en.wikipedia.org/wiki/Gammaproteobacterium			
+135623	Vibrionales	NCBI Taxonomy scientific name									
+469	Acinetobacter	NCBI Taxonomy scientific name									
+777	Coxiella burnetii	NCBI Taxonomy scientific name			Coxiella burnetii	Coxiella burnetii					
+263	Francisella tularensis	NCBI Taxonomy scientific name			Francisella tularensis	Francisella tularensis					
+543	Enterobacteriaceae	NCBI Taxonomy scientific name			Enterobacteriaceae	Enterobacteriaceae
+562	Escherichia coli	NCBI Taxonomy scientific name	E. coli,E coli		Escherichia coli	Escherichia coli					
+590	Salmonella	NCBI Taxonomy scientific name			Salmonella	Salmonella
+203691	Spirochaete	singular of NCBI Taxonomy scientific name			Spirochaete	Spirochaetes	Spirochaete	http://en.wikipedia.org/wiki/Spirochaete			
+544448	Tenericutes	NCBI Taxonomy scientific name			Tenericutes	Tenericutes					
+2759	Eukaryote	singular of NCBI Taxonomy scientific name			Eukaryote	Eukaryota	Eukaryote	http://en.wikipedia.org/wiki/Eukaryote	
+5741	Giardia intestinalis (Giardia lamblia)	NCBI Taxonomy scientific name (GenBank synonym )			Giardia intestinalis	Giardia intestinalis			Giardia lamblia	GenBank synonym 
+4751	Fungus	singular of NCBI Taxonomy scientific name			Fungus	Fungi	Fungus	http://en.wikipedia.org/wiki/Fungus																	
+5204	Basidiomycota	NCBI Taxonomy scientific name			Basidiomycota	Basidiomycota																			
+6029	Microsporidium	singular of NCBI Taxonomy scientific name			Microsporidium	Microsporidia	Microsporidium	http://en.wikipedia.org/wiki/Microsporidium																	
+147538	Pezizomycotina	NCBI Taxonomy scientific name			Pezizomycotina	Pezizomycotina					
+5543	Trichoderma	NCBI Taxonomy scientific name			Trichoderma	Trichoderma
+5599	Alternaria alternata	NCBI Taxonomy scientific name			Alternaria alternata	Alternaria alternata
+451866	Taphrinomycotina	NCBI Taxonomy scientific name			Taphrinomycotina	Taphrinomycotina					
+4892	Saccharomycetales (budding yeast)	NCBI Taxonomy scientific name (singular of GenBank common name)			Saccharomycetales	Saccharomycetales			budding yeast	singular of GenBank common name															
+4932	Saccharomyces cerevisiae (baker's yeast)	NCBI Taxonomy scientific name (GenBank common name)			Saccharomyces cerevisiae	Saccharomyces cerevisiae			baker's yeast	GenBank common name															
+33208	Metazoan (multicellular animal)	singular of NCBI Taxonomy scientific name (singular of NCBI common name)			Metazoan	Metazoa	Metazoan	http://en.wikipedia.org/wiki/Metazoan	multicellular animal	singular of NCBI common name															
+6854	Arachnid	singular of NCBI Taxonomy scientific name			Arachnid	Arachnida	Arachnid	http://en.wikipedia.org/wiki/Arachnid			
+6951	Astigmata (mite)	NCBI Taxonomy scientific name (common name)	mite		Astigmata	Astigmata			mite	common name	http://en.wikipedia.org/wiki/Astigmata
+6953	Dermatophagoides (dust mite)	NCBI Taxonomy scientific name (singular of GenBank common name)			Dermatophagoides	Dermatophagoides			dust mite	singular of GenBank common name
+6935	Ixodid (tick)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Ixodid	Ixodida	Ixodid	http://en.wikipedia.org/wiki/Ixodid	tick	singular of GenBank common name	
+6893	Araneid (spider)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Araneid	Araneae	Araneid	http://en.wikipedia.org/wiki/Araneid	spider	singular of GenBank common name															
+6855	Scorpion	singular of NCBI Taxonomy scientific name			Scorpion	Scorpiones	Scorpion	http://en.wikipedia.org/wiki/Scorpion																	
+6657	Crustacean	singular of NCBI Taxonomy scientific name			Crustacean	Crustacea	Crustacean	http://en.wikipedia.org/wiki/Crustacean			
+50557	Insect	singular of NCBI Taxonomy scientific name			Insect	Insecta	Insect	http://en.wikipedia.org/wiki/Insect			
+85823	Blattoid (cockroach)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Blattoid	Blattodea	Blattoid	http://www.wordnik.com/words/blattoid	cockroach	singular of GenBank common name															
+7147	Dipteran (fly)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Dipteran	Diptera	Dipteran	http://en.wikipedia.org/wiki/Dipteran	fly	singular of GenBank common name															
+7088	Lepidopteran (butterfly or moth)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Lepidopteran	Lepidoptera	Lepidopteran	http://en.wikipedia.org/wiki/Lepidopteran	butterfly or moth	singular of GenBank common name															
+7399	Hymenopteran	singular of NCBI Taxonomy scientific name			Hymenopteran	Hymenoptera	Hymenopteran	http://en.wikipedia.org/wiki/Hymenopteran
+6447	Mollusc	singular of NCBI Taxonomy scientific name			Mollusc	Mollusca	Mollusc	http://en.wikipedia.org/wiki/Mollusc																	
+6231	Nematode (roundworm)	singular of NCBI Taxonomy scientific name (NCBI common name)			Nematode	Nematoda	Nematode	http://en.wikipedia.org/wiki/Nematode	roundworm	NCBI common name															
+6251	Ascaris	NCBI Taxonomy scientific name			Ascaris	Ascaris																			
+6264	Toxocara	NCBI Taxonomy scientific name			Toxocara	Toxocara
+6157	Platyhelminth (flatworm)	singular of NCBI Taxonomy scientific name (NCBI common name)			Platyhelminth	Platyhelminthes	Platyhelminth	http://en.wikipedia.org/wiki/Platyhelminth	flatworm	NCBI common name															
+6191	Fasciola	NCBI Taxonomy scientific name			Fasciola	Fasciola
+46580	Spirometra	NCBI Taxonomy scientific name			Spirometra	Spirometra
+7742	Vertebrate	singular of NCBI Taxonomy scientific name			Vertebrate	Vertebrata	Vertebrate	http://en.wikipedia.org/wiki/Vertebrate																	
+8342	Anuran (frog or toad)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Anuran	Anura	Anuran	http://en.wikipedia.org/wiki/Anuran	frog or toad	singular of GenBank common name															
+8782	Ave (bird)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Ave	Aves	Ave	http://en.wiktionary.org/wiki/ave	bird	singular of GenBank common name	
+8835	Anas (duck)	NCBI Taxonomy scientific name (singular of GenBank common name)			Anas	Anas			duck	singular of GenBank common name
+9090	Coturnix	NCBI Taxonomy scientific name			Coturnix	Coturnix
+8867	Cygnus (swan)	NCBI Taxonomy scientific name (singular of GenBank common name)			Cygnus	Cygnus			swan	singular of GenBank common name
+9031	Gallus gallus (chicken)	NCBI Taxonomy scientific name (GenBank common name)			Gallus gallus	Gallus gallus			chicken	GenBank common name
+7898	Actinopterygii (ray-finned fish)	NCBI Taxonomy scientific name (singular of GenBank common name)			Actinopterygii	Actinopterygii			ray-finned fish	singular of GenBank common name
+117893	Batoidea (ray)	NCBI Taxonomy scientific name (singular of GenBank common name)			Batoidea	Batoidea			ray	singular of GenBank common name
+119203	Selachii (shark)	NCBI Taxonomy scientific name (common name)	shark		Selachii	Selachii			shark	common name	http://en.wikipedia.org/wiki/Shark
+40674	Mammal	singular of NCBI Taxonomy scientific name			Mammal	Mammalia	Mammal	http://en.wikipedia.org/wiki/Mammal			
+9835	Camelid	singular of NCBI Taxonomy scientific name			Camelid	Camelidae	Camelid	http://en.wikipedia.org/wiki/Camelid			
+33554	Carnivore	singular of NCBI Taxonomy scientific name			Carnivore	Carnivora	Carnivore	http://en.wiktionary.org/wiki/carnivore																	
+9665	Mustela	NCBI Taxonomy scientific name			Mustela	Mustela																			
+9823	Sus scrofa (pig)	NCBI Taxonomy scientific name (GenBank common name)			Sus scrofa	Sus scrofa			pig	GenBank common name
+9721	Cetacean (whale, dolphin, or porpoise)	singular of NCBI Taxonomy scientific name (singular of NCBI common name)			Cetacean	Cetacea	Cetacean	http://en.wikipedia.org/wiki/Cetacean	whale, dolphin, or porpoise	singular of NCBI common name															
+9397	Chiropteran (bat)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Chiropteran	Chiroptera	Chiropteran	http://en.wikipedia.org/wiki/Chiropteran	bat	singular of GenBank common name
+9788	Equid (horse)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Equid	Equidae	Equid	http://en.wikipedia.org/wiki/Equid	horse	singular of GenBank common name															
+314147	Glire (rodent or rabbit)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Glire	Glires	Glire	http://en.wikipedia.org/wiki/Glire	rodent or rabbit	singular of GenBank common name	
+10141	Cavia porcellus (guinea pig)	NCBI Taxonomy scientific name (NCBI common name)			Cavia porcellus	Cavia porcellus			guinea pig	NCBI common name	
+10026	Cricetinae (hamster)	NCBI Taxonomy scientific name (singular of GenBank common name)			Cricetinae	Cricetinae			hamster	singular of GenBank common name
+10090	Mus musculus (mouse)	NCBI Taxonomy scientific name (NCBI common name)			Mus musculus	Mus musculus			mouse	NCBI common name
+9986	Oryctolagus cuniculus (rabbit)	NCBI Taxonomy scientific name (GenBank common name)			Oryctolagus cuniculus	Oryctolagus cuniculus			rabbit	GenBank common name
+10114	Rattus (rat)	NCBI Taxonomy scientific name (NCBI common name)			Rattus	Rattus			rat	NCBI common name															
+42414	Sigmodon (cotton rat)	NCBI Taxonomy scientific name (singular of GenBank common name)			Sigmodon	Sigmodon			cotton rat	singular of GenBank common name
+10008	Tamiasciurus	NCBI Taxonomy scientific name			Tamiasciurus	Tamiasciurus
+9263	Marsupial	singular of NCBI Taxonomy scientific name			Marsupial	Metatheria	Marsupial	http://en.wikipedia.org/wiki/Marsupial			
+9443	Primate	singular of NCBI Taxonomy scientific name			Primate	Primates	Primate	http://en.wikipedia.org/wiki/Primate			
+9527	Cercopithecid (Old World monkey)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Cercopithecid	Cercopithecidae	Cercopithecid	http://en.wikipedia.org/wiki/Cercopithecid	Old World monkey	singular of GenBank common name															
+9539	Macaca (macaque)	NCBI Taxonomy scientific name (singular of GenBank common name)			Macaca	Macaca			macaque	singular of GenBank common name		
+9554	Papio (baboon)	NCBI Taxonomy scientific name (singular of GenBank common name)			Papio	Papio			baboon	singular of GenBank common name		
+314295	Hominoid (ape)	singular of NCBI Taxonomy scientific name (NCBI common name)			Hominoid	Hominoidea	Hominoid	http://en.wikipedia.org/wiki/Hominoid	ape	NCBI common name	
+9445	Lemurid (lemur)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Lemurid	Lemuridae	Lemurid	http://en.wikipedia.org/wiki/Lemurid	lemur	singular of GenBank common name	
+9479	Platyrrhini (New World monkey)	NCBI Taxonomy scientific name (singular of GenBank common name)			Platyrrhini	Platyrrhini			New World monkey	singular of GenBank common name		
+9504	Aotus (night monkey)	NCBI Taxonomy scientific name (singular of GenBank common name)			Aotus	Aotus			night monkey	singular of GenBank common name		
+9506	Ateles (spider monkey)	NCBI Taxonomy scientific name (common name)	spider monkey		Ateles	Ateles			spider monkey	common name	http://en.wikipedia.org/wiki/Ateles	
+9481	Callithrix (marmoset)	NCBI Taxonomy scientific name (common name)	marmoset		Callithrix	Callithrix			marmoset	common name	http://en.wikipedia.org/wiki/Callithrix	
+9486	Saguinus (tamarin)	NCBI Taxonomy scientific name (common name)	tamarin		Saguinus	Saguinus			tamarin	common name	http://en.wikipedia.org/wiki/Saguinus	
+9845	Ruminant	singular of NCBI Taxonomy scientific name			Ruminant	Ruminantia	Ruminant	http://en.wikipedia.org/wiki/Ruminant			
+7746	Petromyzontid (lamprey)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Petromyzontid	Petromyzontidae	Petromyzontid	http://en.wikipedia.org/wiki/Petromyzontid	lamprey	singular of GenBank common name	
+8570	Serpent (snake)	singular of NCBI Taxonomy scientific name (singular of GenBank common name)			Serpent	Serpentes	Serpent	http://en.wikipedia.org/wiki/Snake	snake	singular of GenBank common name															
+8752	Lachesis muta (bushmaster)	NCBI Taxonomy scientific name (GenBank common name)			Lachesis muta	Lachesis muta			bushmaster	GenBank common name															
+554915	Amoebozoan	singular of NCBI Taxonomy scientific name			Amoebozoan	Amoebozoa	Amoebozoan	http://en.wiktionary.org/wiki/amoebozoan																	
+5794	Apicomplexan	singular of NCBI Taxonomy scientific name			Apicomplexan	Apicomplexa	Apicomplexan	http://en.wikipedia.org/wiki/Apicomplexan																	
+5658	Leishmania	NCBI Taxonomy scientific name			Leishmania	Leishmania																			
+5690	Trypanosoma	NCBI Taxonomy scientific name			Trypanosoma	Trypanosoma																			
+5811	Toxoplasma gondii	NCBI Taxonomy scientific name			Toxoplasma gondii	Toxoplasma gondii																			
+58024	Spermatophyte (seed plant)	singular of NCBI Taxonomy scientific name (singular of NCBI common name)			Spermatophyte	Spermatophyta	Spermatophyte	http://en.wikipedia.org/wiki/Spermatophyte	seed plant	singular of NCBI common name															
+3615	Polygonaceae (buckwheat family)	NCBI Taxonomy scientific name (NCBI common name)			Polygonaceae	Polygonaceae			buckwheat family	NCBI common name															
+4210	Asteraceae (daisy family)	NCBI Taxonomy scientific name (NCBI common name)			Asteraceae	Asteraceae			daisy family	NCBI common name	
+4220	Artemisia vulgaris (mugwort)	NCBI Taxonomy scientific name (NCBI common name)			Artemisia vulgaris	Artemisia vulgaris			mugwort	NCBI common name	
+3563	Amaranthaceae (amaranth family)	NCBI Taxonomy scientific name (NCBI common name)			Amaranthaceae	Amaranthaceae			amaranth family	NCBI common name	
+3514	Betulaceae (birch family)	NCBI Taxonomy scientific name (NCBI common name)			Betulaceae	Betulaceae			birch family	NCBI common name	
+3367	Cupressaceae (cypress family)	NCBI Taxonomy scientific name (NCBI common name)			Cupressaceae	Cupressaceae			cypress family	NCBI common name	
+3369	Cryptomeria japonica (Japanese cedar)	NCBI Taxonomy scientific name (GenBank common name)			Cryptomeria japonica	Cryptomeria japonica			Japanese cedar	GenBank common name	
+3318	Pinaceae (pine family)	NCBI Taxonomy scientific name (NCBI common name)			Pinaceae	Pinaceae			pine family	NCBI common name	
+16714	Juglandaceae (walnut family)	NCBI Taxonomy scientific name (NCBI common name)			Juglandaceae	Juglandaceae			walnut family	NCBI common name	
+3981	Hevea brasiliensis (rubbertree)	NCBI Taxonomy scientific name (NCBI common name)			Hevea brasiliensis	Hevea brasiliensis			rubbertree	NCBI common name	
+4146	Olea europaea (common olive)	NCBI Taxonomy scientific name (GenBank common name)			Olea europaea	Olea europaea			common olive	GenBank common name	
+3988	Ricinus communis (castor bean)	NCBI Taxonomy scientific name (GenBank common name)			Ricinus communis	Ricinus communis			castor bean	GenBank common name	
+3650	Cucurbitaceae (cucumber family)	NCBI Taxonomy scientific name (NCBI common name)			Cucurbitaceae	Cucurbitaceae			cucumber family	NCBI common name	
+3700	Brassicaceae (mustard family)	NCBI Taxonomy scientific name (GenBank common name)			Brassicaceae	Brassicaceae			mustard family	GenBank common name	
+4045	Apium graveolens (celery)	NCBI Taxonomy scientific name (common name)	celery		Apium graveolens	Apium graveolens			celery	common name	https://en.wikipedia.org/wiki/Apium_graveolens
+4070	Solanaceae (nightshade family)	NCBI Taxonomy scientific name (NCBI common name)			Solanaceae	Solanaceae			nightshade family	NCBI common name	
+4479	Poaceae (grass family)	NCBI Taxonomy scientific name (NCBI common name)			Poaceae	Poaceae			grass family	NCBI common name	
+28909	Cynodon dactylon (Bermuda grass)	NCBI Taxonomy scientific name (GenBank common name)			Cynodon dactylon	Cynodon dactylon			Bermuda grass	GenBank common name	
+4522	Lolium perenne (perennial ryegrass)	NCBI Taxonomy scientific name (NCBI common name)			Lolium perenne	Lolium perenne			perennial ryegrass	NCBI common name	
+15957	Phleum pratense (timothy grass)	NCBI Taxonomy scientific name (GenBank common name)			Phleum pratense	Phleum pratense			timothy grass	GenBank common name	
+4545	Poa pratensis (Kentucky bluegrass)	NCBI Taxonomy scientific name (GenBank common name)			Poa pratensis	Poa pratensis			Kentucky bluegrass	GenBank common name	
+3803	Fabaceae (pea family)	NCBI Taxonomy scientific name (NCBI common name)			Fabaceae	Fabaceae			pea family	NCBI common name	
+3754	Prunus	NCBI Taxonomy scientific name			Prunus	Prunus						
+13100	Juniperus (juniper)	NCBI Taxonomy scientific name (singular of GenBank common name)			Juniperus	Juniperus			juniper	singular of GenBank common name		
+4211	Ambrosia (ragweed)	NCBI Taxonomy scientific name (singular of GenBank common name)			Ambrosia	Ambrosia			ragweed	singular of GenBank common name
+155017	Anogeissus	NCBI Taxonomy scientific name			Anogeissus	Anogeissus
+4496	Avena (oat)	NCBI Taxonomy scientific name (singular of GenBank common name)			Avena	Avena			oat	singular of GenBank common name
+10239	Virus	singular of NCBI Taxonomy scientific name			Virus	Viruses	Virus	http://en.wikipedia.org/wiki/Virus			
+35268	Retro-transcribing virus	singular of NCBI Taxonomy scientific name			Retro-transcribing virus	Retro-transcribing viruses	Retro-transcribing virus	http://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI%20Thesaurus&code=C54085
+10508	Adenovirus	singular of NCBI Taxonomy scientific name			Adenovirus	Adenoviridae	Adenovirus	http://en.wikipedia.org/wiki/Adenovirus
+76803	Arterivirus	singular of NCBI Taxonomy scientific name			Arterivirus	Arteriviridae	Arterivirus
+11118	Coronavirus	singular of NCBI Taxonomy scientific name			Coronavirus	Coronaviridae	Coronavirus	http://en.wikipedia.org/wiki/Coronavirus	
+11050	Flaviviridae family virus	singular of NCBI Taxonomy scientific name			Flaviviridae family virus	Flaviviridae	Flaviviridae family virus		
+10292	Herpesvirus	singular of NCBI Taxonomy scientific name			Herpesvirus	Herpesviridae	Herpesvirus	http://en.wikipedia.org/wiki/Herpesvirus	
+10298	Human herpesvirus 1	NCBI Taxonomy scientific name	herpes virus 1,HHV1		Human herpesvirus 1	Human herpesvirus 1			
+10310	Human herpesvirus 2	NCBI Taxonomy scientific name	herpes virus 2,HHV2,HSV-2		Human herpesvirus 2	Human herpesvirus 2			
+10335	Human herpesvirus 3 (Varicella-zoster virus)	NCBI Taxonomy scientific name (GenBank common name)	herpes virus 3,HHV3,HSV-3,HSV3		Human herpesvirus 3	Human herpesvirus 3			Varicella-zoster virus	GenBank common name
+10376	Human herpesvirus 4 (Epstein Barr virus)	NCBI Taxonomy scientific name (GenBank common name)	herpes virus 4,EBV,HHV4,HSV-4,HSV4		Human herpesvirus 4	Human herpesvirus 4			Epstein Barr virus	GenBank common name
+10359	Human herpesvirus 5 (Human cytomegalovirus)	NCBI Taxonomy scientific name (GenBank common name)	herpes virus 5,CMV,HHV5,HSV-5,HSV5		Human herpesvirus 5	Human herpesvirus 5			Human cytomegalovirus	GenBank common name
+151340	Papillomavirus	singular of NCBI Taxonomy scientific name			Papillomavirus	Papillomaviridae	Papillomavirus	http://en.wikipedia.org/wiki/Papillomavirus	
+10780	Parvoviridae family virus	singular of NCBI Taxonomy scientific name			Parvoviridae family virus	Parvoviridae	Parvoviridae family virus		
+12058	Picornavirus	singular of NCBI Taxonomy scientific name			Picornavirus	Picornaviridae	Picornavirus	http://en.wikipedia.org/wiki/Picornavirus	
+12110	Foot-and-mouth disease virus	NCBI Taxonomy scientific name			Foot-and-mouth disease virus	Foot-and-mouth disease virus			
+10240	Poxvirus	singular of NCBI Taxonomy scientific name			Poxvirus	Poxviridae	Poxvirus	http://en.wikipedia.org/wiki/Poxvirus	
+11632	Retrovirus	singular of NCBI Taxonomy scientific name			Retrovirus	Retroviridae	Retrovirus	http://en.wikipedia.org/wiki/Retrovirus	
+11270	Rhabdovirus	singular of NCBI Taxonomy scientific name			Rhabdovirus	Rhabdoviridae	Rhabdovirus	http://en.wikipedia.org/wiki/Rhabdovirus	
+11018	Togavirus	singular of NCBI Taxonomy scientific name			Togavirus	Togaviridae	Togavirus	http://en.wikipedia.org/wiki/Togavirus	
+10404	Hepadnavirus	singular of NCBI Taxonomy scientific name			Hepadnavirus	Hepadnaviridae	Hepadnavirus	http://en.wikipedia.org/wiki/Hepadnavirus
+39724	Circovirus	singular of NCBI Taxonomy scientific name			Circovirus	Circoviridae	Circovirus	http://en.wikipedia.org/wiki/Circovirus
+12283	Nodavirus	singular of NCBI Taxonomy scientific name			Nodavirus	Nodaviridae	Nodavirus	http://jvi.asm.org/content/76/12/6370.full				
+11266	Filovirus	singular of NCBI Taxonomy scientific name			Filovirus	Filoviridae	Filovirus	http://en.wikipedia.org/wiki/Filovirus				
+10880	Reovirus	singular of NCBI Taxonomy scientific name			Reovirus	Reoviridae	Reovirus	http://en.wikipedia.org/wiki/Reovirus
+11158	Paramyxovirus	singular of NCBI Taxonomy scientific name			Paramyxovirus	Paramyxoviridae	Paramyxovirus	http://en.wikipedia.org/wiki/Paramyxovirus	
+10624	Polyomavirus	NCBI Taxonomy scientific name			Polyomavirus	Polyomavirus
+1350	Enterococcus	NCBI Taxonomy scientific name			Enterococcus	Enterococcus
+1279	Staphylococcus	NCBI Taxonomy scientific name			Staphylococcus	Staphylococcus
+11051	Flavivirus	NCBI Taxonomy scientific name			Flavivirus	Flavivirus
+11598	Hantavirus	NCBI Taxonomy scientific name			Hantavirus	Hantavirus
+143919	Betanodavirus	NCBI Taxonomy scientific name			Betanodavirus	Betanodavirus
+11103	Hepatitis C virus	NCBI Taxonomy scientific name			Hepatitis C virus	Hepatitis C virus		
+578319	Recombinant HCV virus	singular of NCBI Taxonomy scientific name			Recombinant HCV virus	Recombinant HCV viruses	Recombinant HCV virus	
+11095	Pestivirus	NCBI Taxonomy scientific name			Pestivirus	Pestivirus		
+11611	Tospovirus	NCBI Taxonomy scientific name			Tospovirus	Tospovirus		
+339351	unclassified Hantavirus	NCBI Taxonomy scientific name			unclassified Hantavirus	unclassified Hantavirus		
+28344	Porcine reproductive and respiratory syndrome virus	NCBI Taxonomy scientific name			Porcine reproductive and respiratory syndrome virus	Porcine reproductive and respiratory syndrome virus		
+12461	Hepatitis E virus	NCBI Taxonomy scientific name			Hepatitis E virus	Hepatitis E virus		
+11652	Primate lentivirus group	NCBI Taxonomy scientific name			Primate lentivirus group	Primate lentivirus group		
+687331	Alphatorquevirus	NCBI Taxonomy scientific name			Alphatorquevirus	Alphatorquevirus		
+9612	Canis lupus (wolf or dog)	NCBI Taxonomy scientific name (common name)	wolf or dog		Canis lupus	Canis lupus			wolf or dog	common name	http://en.wikipedia.org/wiki/Canis_lupus
+3818	Arachis hypogaea (peanut)	NCBI Taxonomy scientific name (GenBank common name)			Arachis hypogaea	Arachis hypogaea			peanut	GenBank common name	
+9606	Homo sapiens (human)	NCBI Taxonomy scientific name (GenBank common name)			Homo sapiens	Homo sapiens			human	GenBank common name	
+9601	Pongo abelii (Sumatran orangutan)	NCBI Taxonomy scientific name (GenBank common name)			Pongo abelii	Pongo abelii			Sumatran orangutan	GenBank common name	
+9600	Pongo pygmaeus (Bornean orangutan)	NCBI Taxonomy scientific name (GenBank common name)			Pongo pygmaeus	Pongo pygmaeus			Bornean orangutan	GenBank common name	
+9593	Gorilla gorilla	NCBI Taxonomy scientific name			Gorilla gorilla	Gorilla gorilla					
+1496	Clostridium difficile	GenBank common name			Clostridium difficile	Clostridium difficile					
+7165	Anopheles gambiae (African malaria mosquito)	NCBI Taxonomy scientific name (GenBank common name)			Anopheles gambiae	Anopheles gambiae			African malaria mosquito	GenBank common name	
+1148	Synechocystis sp. PCC 6803	NCBI Taxonomy scientific name			Synechocystis sp. PCC 6803	Synechocystis sp. PCC 6803					
+7777	Chondrichthyes (cartilaginous fishes)	NCBI Taxonomy scientific name (GenBank common name)			Chondrichthyes	Chondrichthyes			cartilaginous fishes	GenBank common name	
+11583	HoJo virus	NCBI Taxonomy scientific name			HoJo virus	HoJo virus					
+11250	Human respiratory syncytial virus	NCBI Taxonomy scientific name	human RSV		Human respiratory syncytial virus	Human respiratory syncytial virus		
+11320	Influenza A virus	NCBI Taxonomy scientific name	influenza A		Influenza A virus	Influenza A virus		
+687329	Anelloviridae	NCBI Taxonomy scientific name			Anelloviridae	Anelloviridae																			
+11617	Arenaviridae	NCBI Taxonomy scientific name			Arenaviridae	Arenaviridae																			
+1578	Lactobacillus	NCBI Taxonomy scientific name			Lactobacillus	Lactobacillus		
+5654	Trypanosomatidae	NCBI Taxonomy scientific name			Trypanosomatidae	Trypanosomatidae		
+72273	Thiotrichales	NCBI Taxonomy scientific name			Thiotrichales	Thiotrichales		
+2697049	SARS-CoV2	GenBank acronym			Severe acute respiratory syndrome coronavirus 2	Severe acute respiratory syndrome coronavirus 2			SARS-CoV2	GenBank acronym		
+693996	Alphacoronavirus	NCBI Taxonomy scientific name			Alphacoronavirus	Alphacoronavirus		
+694002	Betacoronavirus	NCBI Taxonomy scientific name			Betacoronavirus	Betacoronavirus		
+694013	Gammacoronavirus	NCBI Taxonomy scientific name			Gammacoronavirus	Gammacoronavirus		

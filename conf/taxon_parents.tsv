@@ -1,0 +1,96 @@
+Taxon ID	Taxon Label	Parent ID	Parent Label																						
+131567	cellular organism	OBI:0100026	Organism
+10239	Virus	OBI:0100026	Organism
+4751	Fungi	2759	Eukaryote
+33208	Metazoa	2759	Eukaryote
+58024	Spermatophyte	2759	Eukaryote
+7898	Actinopterygii	10002034	Fish
+7777	Chondrichthyes	10002034	Fish
+3499	Urticaceae	10002035	Weed
+3563	Amaranthaceae	10002035	Weed
+4210	Asteraceae	10002035	Weed
+156152	Plantaginaceae	10002035	Weed
+3623	Fagopyrum	10002036	Tree or Shrub
+3745	Rosaceae	10002036	Tree or Shrub
+3602	Vitaceae	10002036	Tree or Shrub
+3367	Cupressaceae	10002036	Tree or Shrub
+3514	Betulaceae	10002036	Tree or Shrub
+3503	Fagaceae	10002036	Tree or Shrub
+4011	Anacardiaceae	10002036	Tree or Shrub
+3433	Lauraceae	10002036	Tree or Shrub
+23513	Rutaceae	10002036	Tree or Shrub
+16714	Juglandaceae	10002036	Tree or Shrub
+4144	Oleaceae	10002036	Tree or Shrub
+23672	Rutaceae	10002036	Tree or Shrub
+4401	Platanaceae	10002036	Tree or Shrub
+3642	Lecythidaceae	10002036	Tree or Shrub
+3977	Euphorbiaceae	10002036	Tree or Shrub
+3954	Combretaceae	10002036	Tree or Shrub
+4022	Acer	10002036	Tree or Shrub
+3700	Brassicaceae	10002037	Dicot
+4070	Solanaceae	10002037	Dicot
+4180	Pedaliaceae	10002037	Dicot
+3650	Cucurbitaceae	10002037	Dicot
+4037	Apiaceae	10002037	Dicot
+40552	Arecales	10002038	Monocot
+4637	Musaceae	10002038	Monocot
+4710	Arecaceae	10002038	Monocot
+4613	Bromeliaceae	10002038	Monocot
+28883	Caudovirales	10002041	Bacteriophage (DNA)
+10860	Inoviridae	10002041	Bacteriophage (DNA)
+10656	Tectiviridae	10002041	Bacteriophage (DNA)
+10662	Myoviridae	10002041	Bacteriophage (DNA)
+10744	Podoviridae	10002041	Bacteriophage (DNA)
+10699	Siphoviridae	10002041	Bacteriophage (DNA)
+10877	Cystoviridae	10002042	Bacteriophage (RNA)
+11989	Leviviridae	10002042	Bacteriophage (RNA)
+10811	Geminiviridae	10002043	Plant virus (DNA)
+675064	Alphaflexiviridae	10002044	Plant virus (RNA)
+675068	Betaflexiviridae	10002044	Plant virus (RNA)
+39740	Bromoviridae	10002044	Plant virus (RNA)
+69973	Closteroviridae	10002044	Plant virus (RNA)
+119163	Luteoviridae	10002044	Plant virus (RNA)
+675071	Virgaviridae	10002044	Plant virus (RNA)
+675072	Secoviridae	10002044	Plant virus (RNA)
+39738	Tombusviridae	10002044	Plant virus (RNA)
+143901	Benyvirus	10002044	Plant virus (RNA)
+11611	Tospovirus	10002044	Plant virus (RNA)
+39729	Potyviridae	10002044	Plant virus (RNA)
+197911	Influenzavirus A	10002045	Influenza virus
+197912	Influenzavirus B	10002045	Influenza virus
+197913	Influenzavirus C	10002045	Influenza virus
+35237	dsDNA viruses, no RNA stage	10002039	DNA virus
+29258	ssDNA viruses	10002039	DNA virus
+35325	dsRNA viruses	10002040	RNA virus
+439488	ssRNA viruses	10002040	RNA virus
+2697049	SARS-CoV2	694009	Severe acute respiratory syndrome-related coronavirus
+227860	SARS coronavirus Vietnam	10010000	SARS-1
+227984	SARS coronavirus Tor2	10010000	SARS-1
+228330	SARS coronavirus Urbani	10010000	SARS-1
+228404	SARS coronavirus HKU-39849	10010000	SARS-1
+228407	SARS coronavirus BJ01	10010000	SARS-1
+228415	SARS coronavirus CUHK-W1	10010000	SARS-1
+229992	SARS coronavirus Frankfurt 1	10010000	SARS-1
+233044	SARS coronavirus GD01	10010000	SARS-1
+235088	SARS coronavirus HSR 1	10010000	SARS-1
+235173	SARS coronavirus Shanhgai LY	10010000	SARS-1
+253433	SARS coronavirus PUMC01	10010000	SARS-1
+255729	SARS coronavirus Sino3-11	10010000	SARS-1
+260550	SARS coronavirus CUHK-L2	10010000	SARS-1
+262338	SARS coronavirus GD03T0013	10010000	SARS-1
+264371	SARS coronavirus TW-HP1	10010000	SARS-1
+264376	SARS coronavirus TW-KC1	10010000	SARS-1
+273522	SARS coronavirus LLJ-2004	10010000	SARS-1
+284672	SARS coronavirus TJF	10010000	SARS-1
+299335	SARS coronavirus B039	10010000	SARS-1
+304858	SARS coronavirus A022	10010000	SARS-1
+312027	SARS coronavirus WH20	10010000	SARS-1
+344702	SARS coronavirus ZJ0301	10010000	SARS-1
+421444	SARS coronavirus TJ01	10010000	SARS-1
+511429	SARS coronavirus BJ182-12	10010000	SARS-1
+511430	SARS coronavirus BJ182-4	10010000	SARS-1
+511432	SARS coronavirus BJ182a	10010000	SARS-1
+627440	SARS coronavirus ExoN1	10010000	SARS-1
+627442	SARS coronavirus P2	10010000	SARS-1
+633137	SARS coronavirus MA15	10010000	SARS-1
+633140	SARS coronavirus MA15 ExoN1	10010000	SARS-1
