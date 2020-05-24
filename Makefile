@@ -61,7 +61,9 @@ config: $(SOT_TSVS)
 #
 # Fetch data from IEDB
 
-IEDB_TABLES := reference article
+IEDB_TABLES := reference article \
+               bcell mhc_bind mhc_elution tcell \
+               object epitope
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
 $(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
 	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@

@@ -13,6 +13,14 @@ data = tsv2rdf.readdir("data2")
 sqlite = "file:build/iedb.db?mode=ro"
 app = Flask(__name__, instance_relative_config=True)
 
+assay_tables = {
+    "bcell": "BCell",
+    "tcell": "TCell",
+    "mhc_bind": "MHC Binding",
+    "mhc_elution": "MHC Elution",
+}
+limit = 100
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
@@ -53,6 +61,8 @@ def style():
 def index():
     html = ["div",
             ["p", ["a", {"href": "/reference/"}, "References"]],
+            ["p", ["a", {"href": "/assay/"}, "Assays"]],
+            ["p", ["a", {"href": "/epitope/"}, "Epitopes"]],
             ["p", ["a", {"href": "/sqlite-web/"}, "SQL Browser"]]]
     return render_template("base.jinja2", html=tsv2rdf.render(html))
 
@@ -62,16 +72,15 @@ def references():
     with sqlite3.connect(sqlite, uri=True) as conn:
         conn.row_factory = dict_factory
         cur = conn.cursor()
-        cur.execute("""SELECT r.reference_id, a.article_title
+        cur.execute(f"""SELECT r.reference_id, a.article_title
           FROM reference r
           LEFT JOIN article a ON a.reference_id = r.reference_id
-          ORDER BY r.reference_id""")
+          ORDER BY r.reference_id
+          LIMIT {limit}""")
         items = []
         for row in cur:
             items.append(["li",
-                ["a",
-                 {"href": row["reference_id"]},
-                 row["reference_id"]],
+                ["a", {"href": row["reference_id"]}, row["reference_id"]],
                 " " + (row["article_title"] or "Submission")])
         html = ["div",
                 ["h2", "References"],
@@ -90,19 +99,131 @@ def reference(reference_id):
         rows = cur.fetchall()
         items = []
         for key, value in rows[0].items():
-            items.append(["li", ["strong", key], ": ", value])
+            if value:
+                items.append(["li", ["strong", key], ": ", value])
         items = ["ul", {"style": "list-style: none"}] + items
         html.append(["h3", f"Reference {reference_id}"])
         html.append(items)
 
         cur.execute(f"SELECT * FROM article WHERE reference_id = '{reference_id}'")
         rows = cur.fetchall()
+        if len(rows) > 0:
+            items = []
+            for key, value in rows[0].items():
+                if value:
+                    items.append(["li", ["strong", key], ": ", value])
+            items = ["ul", {"style": "list-style: none"}] + items
+            html.append(["h3", "Article"])
+            html.append(items)
+
+        for table, title in assay_tables.items():
+            cur.execute(f"""SELECT {table}_id AS assay_id
+              FROM {table}
+              WHERE reference_id = '{reference_id}'
+              ORDER BY assay_id""")
+            items = []
+            for row in cur:
+                items.append(["li", ["a", {"href": "/assay/" + row["assay_id"]}, row["assay_id"]]])
+            if len(items) > 0:
+                items = ["ul"] + items
+                html.append(["h3", title, f" ({len(items)})"])
+                html.append(items)
+
+        cur.execute(f"""SELECT epitope_id
+          FROM epitope
+          WHERE reference_id = '{reference_id}'
+          ORDER BY epitope_id""")
         items = []
-        for key, value in rows[0].items():
-            items.append(["li", ["strong", key], ": ", value])
-        items = ["ul", {"style": "list-style: none"}] + items
-        html.append(["h3", f"Article"])
-        html.append(items)
+        for row in cur:
+            items.append(["li", ["a", {"href": "/epitope/" + row["epitope_id"]}, row["epitope_id"]]])
+        if len(items) > 0:
+            items = ["ul"] + items
+            html.append(["h3", "Epitopes", f" ({len(items)})"])
+            html.append(items)
+
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+
+@app.route('/assay/')
+def assays():
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        html = ["div", ["h2", "Assays"]]
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        for table, title in assay_tables.items():
+            cur.execute(f"""SELECT {table}_id AS assay_id
+              FROM {table}
+              ORDER BY assay_id
+              LIMIT {limit}""")
+            items = []
+            for row in cur:
+                items.append(["li", ["a", {"href": "/assay/" + row["assay_id"]}, row["assay_id"]]])
+            if len(items) > 0:
+                items = ["ul"] + items
+                html.append(["h3", title])
+                html.append(items)
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+
+@app.route('/assay/<assay_id>')
+def assay(assay_id):
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        html = ["div", ["h2", ["a", {"href": "./"}, "Assays"]]]
+        html.append(["h3", f"Assay {assay_id}"])
+
+        for table in assay_tables.keys():
+            cur.execute(f"SELECT * FROM {table} WHERE {table}_id = '{assay_id}'")
+            rows = cur.fetchall()
+            if len(rows) > 0:
+                items = []
+                for key, value in rows[0].items():
+                    if value:
+                        items.append(["li", ["strong", key], ": ", value])
+                items = ["ul", {"style": "list-style: none"}] + items
+                html.append(items)
+                break
+
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+@app.route('/epitope/')
+def epitopes():
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        cur.execute(f"""SELECT epitope_id, e_object_desc AS description
+          FROM epitope
+          ORDER BY epitope_id
+          LIMIT {limit}""")
+        items = []
+        for row in cur:
+            items.append(["li",
+                ["a", {"href": row["epitope_id"]}, row["epitope_id"]],
+                " " + row["description"]])
+        html = ["div",
+                ["h2", "Epitopes"],
+                ["ul"] + items]
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+
+@app.route('/epitope/<epitope_id>')
+def epitope(epitope_id):
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        html = ["div", ["h2", ["a", {"href": "./"}, "Epitopes"]]]
+        html.append(["h3", f"Epitope {epitope_id}"])
+
+        cur.execute(f"SELECT * FROM epitope WHERE epitope_id = '{epitope_id}'")
+        rows = cur.fetchall()
+        if len(rows) > 0:
+            items = []
+            for key, value in rows[0].items():
+                if value:
+                    items.append(["li", ["strong", key], ": ", value])
+            items = ["ul", {"style": "list-style: none"}] + items
+            html.append(items)
 
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
