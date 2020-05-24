@@ -61,13 +61,20 @@ config: $(SOT_TSVS)
 #
 # Fetch data from IEDB
 
-IEDB_TABLES := reference_list
+IEDB_TABLES := reference article
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
-$(IEDB_TSVS): src/iedbtk/fetch_table.py | cache/iedb
-	python3 $< IEDB $(basename $(notdir $@)) > $@
+$(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
+	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@
+
+build/iedb.sql: $(IEDB_TSVS)
+	echo ".mode tabs" > $@
+	$(foreach X,$^,echo ".import $(X) $(basename $(notdir $X))" >> $@;)
+
+build/iedb.db: build/iedb.sql
+	sqlite3 $@ < $<
 
 .PHONY: iedb
-iedb: $(IEDB_TSVS)
+iedb: build/iedb.db
 
 
 ### TREES
@@ -105,9 +112,8 @@ trees: build/trees.db
 ### SERVE
 
 .PHONY: serve
-serve: build/trees.db
-	export FLASK_ENV=development
-	src/iedbtk/server.py
+serve: build/iedb.db
+	./run.sh $^
 
 
 ### TEST, LINT, FORMAT

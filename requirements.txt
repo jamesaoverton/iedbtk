@@ -3,4 +3,6 @@ flake8
 Flask
 PyMySQL
 pytest
+requests
+sqlite-web
 xlsx2csv

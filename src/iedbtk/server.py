@@ -2,7 +2,8 @@
 
 import subprocess
 
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, Response
+from requests import get, post
 import tsv2rdf
 
 #root = "/browse/"
@@ -47,6 +48,22 @@ def index():
         output.append(f"""<li><a href="{root}{tree}">{tree}</a>""")
     output = "\n".join(output)
     return f"<html><ul>{output}</ul></html>"
+
+
+# Proxy /sqlite-web to localhost 8080
+SITE_NAME="http://localhost:8080/sqlite-web/"
+@app.route('/sqlite-web/', defaults={"path": ""})
+@app.route('/sqlite-web/<path:path>', methods=["GET", "POST"])
+def proxy(path):
+    print(request)
+    excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+    if request.method=='GET':
+        resp = get(f'{SITE_NAME}{path}')
+    elif request.method=='POST':
+        resp = post(f'{SITE_NAME}{path}', request.form)
+    headers = [(name, value) for (name, value) in resp.raw.headers.items() if name.lower() not in excluded_headers]
+    response = Response(resp.content, resp.status_code, headers)
+    return response
 
 
 @app.route('/<tree>')
