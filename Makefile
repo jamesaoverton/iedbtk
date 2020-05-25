@@ -61,7 +61,7 @@ config: $(SOT_TSVS)
 #
 # Fetch data from IEDB
 
-IEDB_TABLES := reference article \
+IEDB_TABLES := reference article article_dual submission \
                bcell mhc_bind mhc_elution tcell \
                object epitope
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
