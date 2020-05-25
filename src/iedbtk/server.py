@@ -6,6 +6,7 @@ import subprocess
 
 from flask import Flask, request, redirect, Response, render_template
 from requests import get, post
+from urllib.parse import urlencode
 import tsv2rdf
 
 #root = "/browse/"
@@ -124,6 +125,7 @@ def style():
 @app.route('/')
 def index():
     html = ["div",
+            ["p", ["a", {"href": "/search/"}, "Search"]],
             ["p", ["a", {"href": "/reference/"}, "References"]],
             ["p", ["a", {"href": "/assay/"}, "Assays"]],
             ["p", ["a", {"href": "/epitope/"}, "Epitopes"]],
@@ -137,36 +139,40 @@ links = {
     "pubmed_id": "https://pubmed.ncbi.nlm.nih.gov/",
 }
 
-def make_paged_table(rows, count, page, link="?"):
+def make_paged_table(rows, count, args):
+    page = int(args.get("page", "1"))
     html = ["div"]
     nav = ["ul", {"class": "pagination", "style": "margin-top: 1em"}]
     cls = "page-item"
     if page == 1:
         cls += " disabled"
+    args["page"] = page - 1
     nav.append(
         ["li",
          {"class": cls},
          ["a",
-         {"class": "page-link", "href": f"{link}page={page - 1}"},
+          {"class": "page-link", "href": "?" + urlencode(args)},
           "&laquo"]])
     for o in range(1, math.ceil(count/limit) + 1):
         cls = "page-item"
         if o == page:
             cls += " active"
+        args["page"] = o
         nav.append(
             ["li",
              {"class": cls},
              ["a",
-             {"class": "page-link", "href": f"{link}page={o}"},
+              {"class": "page-link", "href": "?" + urlencode(args)},
               str(o)]])
     cls = "page-item"
     if page == o:
         cls += " disabled"
+    args["page"] = page + 1
     nav.append(
         ["li",
          {"class": cls},
          ["a",
-         {"class": "page-link", "href": f"{link}page={page + 1}"},
+          {"class": "page-link", "href": "?" + urlencode(args)},
           "&raquo;"]])
     html.append(nav)
     html.append(make_table(rows))
@@ -242,7 +248,7 @@ def references():
           OFFSET {offset}""")
         html = ["div",
                 ["h2", "References"],
-                make_paged_table(cur.fetchall(), count, page)]
+                make_paged_table(cur.fetchall(), count, dict(request.args))]
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
 
@@ -261,8 +267,9 @@ def reference(reference_id):
         for table, title in {"article": "Article", "article_dual": "Article", "submission": "Submission"}.items():
             cur.execute(f"SELECT * FROM {table} WHERE reference_id = '{reference_id}'")
             row = cur.fetchone()
-            html.append(["h3", title])
-            html.append(make_kv(row))
+            if row:
+                html.append(["h3", title])
+                html.append(make_kv(row))
 
         for table, values in assay_tables.items():
             cur.execute(f"""SELECT {table}_id AS assay_id
@@ -319,6 +326,8 @@ def assays():
         html.append(nav)
 
         table = tab
+        args = dict(request.args)
+        args["tab"] = table
         count = assay_tables[table]["count"]
         page = int(request.args.get("page", "1"))
 
@@ -331,7 +340,7 @@ def assays():
           OFFSET {offset}""")
         rows = cur.fetchall()
         if len(rows) > 0:
-            html.append(make_paged_table(rows, count, page, f"?tab={table}&"))
+            html.append(make_paged_table(rows, count, page, args))
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
 
@@ -374,7 +383,7 @@ def epitopes():
           ORDER BY epitope_id
           LIMIT {limit}
           OFFSET {offset}""")
-        table = make_paged_table(cur.fetchall(), count, page)
+        table = make_paged_table(cur.fetchall(), count, dict(request.args))
         html = ["div", ["h2", "Epitopes"], table]
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
@@ -413,6 +422,88 @@ def epitope(epitope_id):
         cur = conn.cursor()
         html = ["div", ["h2", ["a", {"href": "./"}, "Epitopes"]]]
         html += make_epitope(cur, epitope_id)
+
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+def my_count(cur, args):
+    result = {
+        "search": {"title": "Search"},
+        "epitope": {"title": "Epitopes", "count": 1},
+        "assay": {"title": "Assays", "count": 2},
+        "reference": {"title": "References", "count": 3},
+    }
+
+    conditions = []
+    if "sequence" in args and args["sequence"]:
+        conditions.append(f"e_object_desc = '{args['sequence']}'")
+    if conditions:
+        conditions = "WHERE " + " AND ".join(conditions)
+    else:
+        conditions = ""
+    result["epitope"]["conditions"] = conditions
+
+    cur.execute(f"""SELECT count(epitope_id) AS epitope_count,
+          count(distinct reference_id) AS reference_count
+        FROM epitope {conditions}""")
+    row = cur.fetchone()
+    result["epitope"]["count"] = row["epitope_count"]
+    result["reference"]["count"] = row["reference_count"]
+
+    return result
+
+
+@app.route('/search/')
+def search():
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        html = ["div", ["h2", "Search"]]
+        nav = ["ul", {"class": "nav nav-tabs", "style": "margin-bottom: 1em"}]
+        tab = request.args.get("tab", "search")
+        args = request.args.copy()
+        result = my_count(cur, request.args)
+        for table, values in result.items():
+            cls = "nav-link"
+            if tab == table:
+                cls += " active"
+            args["tab"] = table
+            title = values["title"]
+            if "count" in values:
+                title += f" ({values['count']})"
+            nav.append(
+               ["li",
+                {"class": "nav-item"}, 
+                ["a",
+                 {"class": cls, "href": "?" + urlencode(args)},
+                 title]])
+        html.append(nav)
+
+        if tab == "search":
+            form = ["form",
+                    {"id": "search-form"},
+                    ["p",
+                     ["label", {"for": "sequence"}, "Sequence"],
+                     ["input", {"id": "sequence", "name": "sequence", "type": "text", "placeholder": "SIINFEKL", "value": request.args.get("sequence", "")}]],
+                    ["p",
+                     ["a", {"href": "/search/"}, "Clear"],
+                     ["input", {"type": "submit", "value": "Search"}]]]
+            html.append(form)
+
+        elif tab == "epitope":
+            table = "epitope"
+            values = result[table]
+            count = values["count"]
+            page = int(request.args.get("page", "1"))
+            offset = (page - 1) * limit
+            cur.execute(f"""SELECT epitope_id,
+                e_object_desc AS epitope,
+                e_object_mol_name AS antigen,
+                e_object_organism_name AS organism
+              FROM epitope {values["conditions"]}
+              ORDER BY epitope_id
+              LIMIT {limit}
+              OFFSET {offset}""")
+            html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
 
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
