@@ -61,12 +61,14 @@ config: $(SOT_TSVS)
 #
 # Fetch data from IEDB
 
-IEDB_TABLES := reference article article_dual submission \
-               bcell mhc_bind mhc_elution tcell \
-               object epitope
+#IEDB_TABLES := reference article article_dual submission \
+#               bcell mhc_bind mhc_elution tcell \
+#               object epitope
+IEDB_TABLES := simple_search
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
-$(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
-	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@
+
+#$(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
+#	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@
 
 build/assays.tsv: conf/assays.tsv
 	tail -n+2 $< \
@@ -75,11 +77,19 @@ build/assays.tsv: conf/assays.tsv
 	| sort -n \
 	> $@
 
-build/iedb.db: src/iedbtk/iedb.sql cache/iedb/simple_search.tsv
+build/temp.sql: $(IEDB_TSVS)
+	echo ".mode tabs" > $@
+	$(foreach X,$^,echo ".import $(X) $(basename $(notdir $X))" >> $@;)
+
+build/temp.db: build/temp.sql
+	sqlite3 $@ < $<
+
+build/iedb.db: src/iedbtk/search.sql build/temp.db
+	rm -f $@
 	sqlite3 $@ < $<
 
 .PHONY: iedb
-iedb: build/iedb.db src/iedbtk/search.sql
+iedb: build/iedb.db src/iedbtk/trees.sql
 	sqlite3 $< < $(word 2,$^)
 
 

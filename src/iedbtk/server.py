@@ -103,6 +103,8 @@ def make_paged_table(rows, count, args):
 
 
 def make_table(rows):
+    if not rows:
+        return "No data"
     table = ["table", {"class": "table table-borderless"}]
     tr = ["tr"]
     for key in rows[0].keys():
@@ -131,38 +133,88 @@ def my_count(cur, args):
         "epitope": {"title": "Epitopes", "count": 1},
         "antigen": {"title": "Antigens", "count": 2},
         "assay": {"title": "Assays", "count": 3},
-        "receptor": {"title": "Receptor", "count": 4},
+        "receptor": {"title": "Receptor", "count": -1},
         "reference": {"title": "References", "count": 5},
     }
 
-    conditions = []
+    withs = []
+    froms = ["search"]
+    joins = []
+    wheres = []
     if "sequence" in args and args["sequence"]:
-        conditions.append(f"linear_sequence = '{args['sequence']}'")
-    if conditions:
-        conditions = "WHERE " + " AND ".join(conditions)
-    else:
-        conditions = ""
-    result["search"]["conditions"] = conditions
+        wheres.append(f"linear_sequence = '{args['sequence']}'")
+    if "nonpeptide" in args and args["nonpeptide"]:
+        withs.append(f"""
+WITH RECURSIVE nonpeptides(n) AS (
+  VALUES ('{args['nonpeptide']}')
+  UNION
+  SELECT child FROM nonpeptide, nonpeptides
+  WHERE parent = nonpeptides.n)""")
+        joins.append("JOIN nonpeptides n ON n.n = search.non_peptide_id")
 
-    query = f"""SELECT
-        count(distinct structure_id) AS epitope_count,
-        count(distinct source_antigen_id) AS antigen_count,
-        count(distinct assay_id) AS assay_count,
-        count(distinct reference_id) AS reference_count
-      FROM search {conditions}"""
+    q = {
+      "with": withs,
+      "select": [
+          "count(distinct structure_id) AS epitope_count",
+          "count(distinct source_antigen_id) AS antigen_count",
+          "count(distinct assay_id) AS assay_count",
+          "count(distinct reference_id) AS reference_count",
+      ],
+      "from": froms,
+
+      "join": joins,
+      "where": wheres
+    }
+    result["search"].update(q)
 
     # Cache the counts
-    if query in counts:
-        return counts[query]
+    qs = build_query(q)
+    if qs in counts:
+        return counts[qs]
 
-    cur.execute(query)
+    cur.execute(qs)
     row = cur.fetchone()
     result["epitope"]["count"] = row["epitope_count"]
     result["antigen"]["count"] = row["antigen_count"]
     result["assay"]["count"] = row["assay_count"]
     result["reference"]["count"] = row["reference_count"]
-    counts[query] = result
+    counts[qs] = result
     return result
+
+
+def href(args, **kwargs):
+    d = {}
+    d.update(args)
+    d.update(kwargs)
+    return "?" + urlencode(d)
+
+def build_query(q):
+    result = ""
+    if "with" in q and q["with"]:
+        result += "\n".join(q["with"])
+    result += "\nSELECT\n  "
+    result += ",\n  ".join(q["select"])
+    result += "\nFROM "
+    result += ", ".join(q["from"])
+    if "join" in q and q["join"]:
+        result += "\n" + "\n".join(q["join"])
+    if "where" in q and q["where"]:
+        result += "\nWHERE " + "\n  AND".join(q["where"])
+    if "group by" in q and q["group by"]:
+        result += "\nGROUP BY " + ", ".join(q["group by"])
+    if "order by" in q and q["order by"]:
+        result += "\nORDER BY " + ", ".join(q["order by"])
+    if "limit" in q and q["limit"]:
+        result += f"\nLIMIT {q['limit']}"
+    if "offset" in q and q["offset"]:
+        result += f"\nOFFSET {q['offset']}"
+    return result
+
+
+def query(cur, q):
+    qs = build_query(q)
+    print(qs)
+    return cur.execute(qs)
 
 
 @app.route('/search/')
@@ -173,10 +225,15 @@ def search():
         html = ["div", ["h2", "Search"]]
         nav = ["ul", {"class": "nav nav-tabs justify-content-center", "style": "margin-bottom: 1em"}]
         tab = request.args.get("tab", "search")
+        page = int(request.args.get("page", "1"))
         args = request.args.copy()
         args["page"] = 1
         result = my_count(cur, request.args)
-        conditions = result["search"]["conditions"]
+        count = result[tab].get("count", 0)
+        q = result["search"]
+        q["limit"] = limit
+        q["offset"] = offset = (page - 1) * limit
+
         for table, values in result.items():
             cls = "nav-link"
             if tab == table:
@@ -197,89 +254,73 @@ def search():
         if tab == "search":
             form = ["form",
                     {"id": "search-form"},
+                    ["p",
+                     ["a", {"class": "btn btn-primary", "href": "/search/"}, "Clear"],
+                     ["input", {"class": "btn btn-success", "type": "submit", "value": "Search"}]],
                     ["p", "structure type list"],
                     ["p",
                      ["label", {"for": "sequence"}, "Epitope linear sequence"],
                      ["input", {"id": "sequence", "name": "sequence", "type": "text", "placeholder": "SIINFEKL", "value": request.args.get("sequence", "")}]],
                     ["p", "non-peptidic epitope finder"],
+                    ["p",
+                     ["label", {"for": "nonpeptide"}, "Non-Peptic Epitope"],
+                     ["input", {"id": "nonpeptide", "name": "nonpeptide", "type": "text", "placeholder": "CHEBI:28112", "value": request.args.get("nonpeptide", "")}]],
                     ["p", "organism finder"],
                     ["p", "antigen finder"],
                     ["p", "mhc finder"],
                     ["p", "host finder"],
                     ["p", "disease finder"],
-                    ["p", "qualitative measure"],
-                    ["p",
-                     ["a", {"href": "/search/"}, "Clear"],
-                     ["input", {"type": "submit", "value": "Search"}]]]
-            html.append(form)
+                    ["p", "qualitative measure"]]
+            tree = ["ul",
+                    ["li",
+                     ["a", {"href": href(args, nonpeptide="CHEBI:33521")}, "metal atom"],
+                     ["ul",
+                      ["li", ["a", {"href": href(args, nonpeptide="CHEBI:28112")}, "nickel atom"]],
+                      ["li", ["a", {"href": href(args, nonpeptide="CHEBI:27638")}, "cobalt atom"]]]]]
+            html.append(["div",
+                         {"class": "row"},
+                         ["div", {"class": "col"}, form], 
+                         ["div", {"class": "col"}, tree]])
 
         elif tab == "epitope":
-            table = "epitope"
-            values = result[table]
-            count = values["count"]
-            page = int(request.args.get("page", "1"))
-            offset = (page - 1) * limit
-            cur.execute(f"""SELECT
-                structure_id,
-                description,
-                source_antigen_label,
-                source_organism_label,
-                count(distinct assay_id) AS assays,
-                count(distinct reference_id) AS "references"
-              FROM search {conditions}
-              GROUP BY structure_id
-              LIMIT {limit}
-              OFFSET {offset}""")
-            html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
+            q["select"] = [
+                "structure_id",
+                "description",
+                "source_antigen_label",
+                "source_organism_label",
+                "count(distinct assay_id) AS assays",
+                "count(distinct reference_id) AS \"references\""
+            ]
+            q["group by"] = ["structure_id"]
 
         elif tab == "antigen":
-            table = "antigen"
-            values = result[table]
-            count = values["count"]
-            page = int(request.args.get("page", "1"))
-            offset = (page - 1) * limit
-            cur.execute(f"""SELECT
-                source_antigen_label,
-                source_antigen_source_organism_label,
-                count(distinct structure_id) AS epitopes,
-                count(distinct assay_id) AS assays,
-                count(distinct reference_id) AS "references"
-              FROM search {conditions}
-              GROUP BY source_antigen_id
-              LIMIT {limit}
-              OFFSET {offset}""")
-            html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
+            q["select"] = [
+                "source_antigen_label",
+                "source_antigen_source_organism_label",
+                "count(distinct structure_id) AS epitopes",
+                "count(distinct assay_id) AS assays",
+                "count(distinct reference_id) AS \"references\"",
+            ]
+            q["group by"] = ["source_antigen_id"]
 
         elif tab == "assay":
-            table = "assay"
-            values = result[table]
-            count = values["count"]
-            page = int(request.args.get("page", "1"))
-            offset = (page - 1) * limit
-            cur.execute(f"""SELECT DISTINCT
-                assay_id,
-                reference_id,
-                assay_type_id
-              FROM search {conditions}
-              LIMIT {limit}
-              OFFSET {offset}""")
-            html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
+            q["select"] = [
+                "DISTINCT assay_id",
+                "reference_id",
+                "assay_type_id"
+            ]
 
         elif tab == "reference":
-            table = "reference"
-            values = result[table]
-            count = values["count"]
-            page = int(request.args.get("page", "1"))
-            offset = (page - 1) * limit
-            cur.execute(f"""SELECT DISTINCT
-                reference_id,
-                pubmed_id,
-                reference_author,
-                reference_title,
-                reference_date
-              FROM search {conditions}
-              LIMIT {limit}
-              OFFSET {offset}""")
+            q["select"] = [
+                "DISTINCT reference_id",
+                "pubmed_id",
+                "reference_author",
+                "reference_title",
+                "reference_date"
+            ]
+
+        if tab != "search":
+            query(cur, q)
             html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
 
         return render_template("base.jinja2", html=tsv2rdf.render(html))

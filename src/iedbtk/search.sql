@@ -1,12 +1,4 @@
 -- Make a search table
-DROP INDEX IF EXISTS search_structure_id;
-DROP INDEX IF EXISTS search_source_antigen_id;
-DROP INDEX IF EXISTS search_assay_id;
-DROP INDEX IF EXISTS search_reference_id;
-DROP INDEX IF EXISTS search_linear_sequence;
-DROP INDEX IF EXISTS search_structure_assay_ids;
-DROP INDEX IF EXISTS search_structure_reference_ids;
-DROP INDEX IF EXISTS search_ids;
 DROP TABLE IF EXISTS search;
 CREATE TABLE search (
   search_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,6 +11,8 @@ CREATE TABLE search (
   source_organism_id TEXT,
   source_organism_label TEXT,
   linear_sequence TEXT,
+  non_peptide_id TEXT,
+  non_peptide_label TEXT,
   tcell_id INT,
   bcell_id INT,
   elution_id INT,
@@ -31,6 +25,10 @@ CREATE TABLE search (
   reference_date INT
 );
 
+
+ATTACH DATABASE "file:build/temp.db?mode=ro" AS source;
+
+
 INSERT INTO search
 SELECT NULL AS search_id,
   structure_id,
@@ -42,6 +40,8 @@ SELECT NULL AS search_id,
   source_organism_id,
   source_organism_name AS source_organism_label,
   linear_sequence,
+  replace(non_peptidic_obi_id, 'http://purl.obolibrary.org/obo/CHEBI_', 'CHEBI:') AS non_peptide_id,
+  non_peptidic_obi_id AS non_peptide_label,
   tcell_id,
   bcell_id,
   elution_id,
@@ -52,13 +52,14 @@ SELECT NULL AS search_id,
   reference_author,
   reference_title,
   reference_date
-FROM simple_search;
+FROM source.simple_search;
 
 CREATE INDEX search_structure_id ON search(structure_id);
 CREATE INDEX search_source_antigen_id ON search(source_antigen_id);
 CREATE INDEX search_assay_id ON search(assay_id);
 CREATE INDEX search_reference_id ON search(reference_id);
 CREATE INDEX search_linear_sequence ON search(linear_sequence);
+CREATE INDEX search_non_peptide_id ON search(non_peptide_id);
 CREATE INDEX search_structure_assay_ids ON search(structure_id, assay_id);
 CREATE INDEX search_structure_reference_ids ON search(structure_id, reference_id);
 CREATE INDEX search_ids ON search(structure_id, source_antigen_id, assay_id, reference_id);
