@@ -48,7 +48,6 @@ def connect(namespace):
                     user=user,
                     password=password,
                     database=database,
-                    encoding="UTF-8",
                     cursorclass=pymysql.cursors.SSDictCursor
                     )
             cur = conn.cursor()
@@ -77,7 +76,7 @@ def fetch(cur, query, output=sys.stdout, start=0):
             cur.execute(f"{query} OFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY")
             cur.rowfactory = lambda *args: dict(zip([d[0].lower() for d in cur.description], args))
         else:
-            cur.execute(f"{query} OFFSET {offset} LIMIT {limit}")
+            cur.execute(f"{query} LIMIT {limit} OFFSET {offset}")
         fieldnames = [d[0].lower() for d in cur.description]
         if not writer:
             writer = csv.DictWriter(output, fieldnames=fieldnames, delimiter='\t', lineterminator='\n')

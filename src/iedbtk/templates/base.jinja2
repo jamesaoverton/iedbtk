@@ -43,6 +43,11 @@ $('#search-form').submit(function () {
         })
         .prop('name', '');
 });
+function jump(currentPage) {
+  newPage = prompt("Jump to page", currentPage);
+  href = window.location.href.replace("page="+currentPage, "page="+newPage);
+  window.location.href = href
+}
     </script>
 
   </body>

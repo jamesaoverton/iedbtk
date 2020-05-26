@@ -68,15 +68,19 @@ IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
 $(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
 	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@
 
-build/iedb.sql: $(IEDB_TSVS)
-	echo ".mode tabs" > $@
-	$(foreach X,$^,echo ".import $(X) $(basename $(notdir $X))" >> $@;)
+build/assays.tsv: conf/assays.tsv
+	tail -n+2 $< \
+	| cut -f2,7 \
+	| sed /^[0-9]/!d \
+	| sort -n \
+	> $@
 
-build/iedb.db: build/iedb.sql
+build/iedb.db: src/iedbtk/iedb.sql cache/iedb/simple_search.tsv
 	sqlite3 $@ < $<
 
 .PHONY: iedb
-iedb: build/iedb.db
+iedb: build/iedb.db src/iedbtk/search.sql
+	sqlite3 $< < $(word 2,$^)
 
 
 ### TREES
