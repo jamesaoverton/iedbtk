@@ -1,3 +1,5 @@
+ATTACH DATABASE "file:build/temp.db?mode=ro" AS source;
+
 -- Make a search table
 DROP TABLE IF EXISTS search;
 CREATE TABLE search (
@@ -24,10 +26,6 @@ CREATE TABLE search (
   reference_title TEXT,
   reference_date INT
 );
-
-
-ATTACH DATABASE "file:build/temp.db?mode=ro" AS source;
-
 
 INSERT INTO search
 SELECT NULL AS search_id,
@@ -63,3 +61,106 @@ CREATE INDEX search_non_peptide_id ON search(non_peptide_id);
 CREATE INDEX search_structure_assay_ids ON search(structure_id, assay_id);
 CREATE INDEX search_structure_reference_ids ON search(structure_id, reference_id);
 CREATE INDEX search_ids ON search(structure_id, source_antigen_id, assay_id, reference_id);
+
+
+
+
+DROP TABLE IF EXISTS tcell;
+CREATE TABLE tcell (
+  tcell_id INT PRIMARY KEY,
+  reference_id INT,
+  reference_summary TXT,
+  structure_id INT,
+  epitope_description TXT,
+  host_id TXT,
+  host_label TXT,
+  immunization_description TXT,
+  antigen_description TXT,
+  antigen_epitope_relation TXT,
+  mhc_restriction TXT,
+  assay_description TXT
+);
+
+INSERT INTO tcell
+SELECT
+  tcell_id,
+  reference_id,
+  reference_summary,
+  structure_id,
+  epitope_description,
+  host_organism_id AS host_id,
+  host AS host_label,
+  immunization_description,
+  antigen_description,
+  antigen_er AS antigen_epitope_relation,
+  mhc_restriction,
+  assay_description
+FROM source.tcell_list;
+
+CREATE INDEX tcell_tcell_id ON tcell(tcell_id);
+
+
+
+DROP TABLE IF EXISTS bcell;
+CREATE TABLE bcell (
+  bcell_id INT PRIMARY KEY,
+  reference_id INT,
+  reference_summary TXT,
+  structure_id INT,
+  epitope_description TXT,
+  host_id TXT,
+  host_label TXT,
+  immunization_description TXT,
+  antigen_description TXT,
+  antigen_epitope_relation TXT,
+  assay_description TXT
+);
+
+INSERT INTO bcell
+SELECT
+  bcell_id,
+  reference_id,
+  reference_summary,
+  structure_id,
+  epitope_description,
+  host_organism_id AS host_id,
+  host AS host_label,
+  immunization_description,
+  antigen_description,
+  antigen_er AS antigen_epitope_relation,
+  assay_description
+FROM source.bcell_list;
+
+CREATE INDEX bcell_bcell_id ON bcell(bcell_id);
+
+
+
+
+DROP TABLE IF EXISTS elution;
+CREATE TABLE elution (
+  elution_id INT PRIMARY KEY,
+  reference_id INT,
+  reference_summary TXT,
+  structure_id INT,
+  epitope_description TXT,
+  antigen_processing TXT,
+  mhc_restriction TXT,
+  assay_description TXT,
+  quantitative_measure TXT
+);
+
+INSERT INTO elution
+SELECT
+  elution_id,
+  reference_id,
+  reference_summary,
+  structure_id,
+  epitope_description,
+  merged_host_imm_desc AS antigen_processing,
+  mhc_restriction,
+  assay_description,
+  quantitative_measure
+FROM source.mhc_elution_list;
+
+CREATE INDEX elution_elution_id ON elution(elution_id);
+

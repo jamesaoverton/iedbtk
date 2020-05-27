@@ -65,6 +65,9 @@ config: $(SOT_TSVS)
 #               bcell mhc_bind mhc_elution tcell \
 #               object epitope
 IEDB_TABLES := simple_search \
+               tcell_list \
+               bcell_list \
+               mhc_elution_list \
                molecule_finder_nonpep_tree
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv.gz)
 
@@ -128,7 +131,7 @@ trees: build/trees.db
 ### SERVE
 
 .PHONY: serve
-serve: build/iedb.db
+serve: iedb
 	./run.sh $^
 
 

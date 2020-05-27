@@ -15,7 +15,7 @@ data = tsv2rdf.readdir("data2")
 sqlite = "file:build/iedb.db?mode=ro"
 app = Flask(__name__, instance_relative_config=True)
 
-limit = 100
+limit = 25
 
 def dict_factory(cursor, row):
     d = {}
@@ -65,6 +65,9 @@ def index():
 links = {
     "reference_id": "http://iedb.org/reference/",
     "assay_id": "http://iedb.org/assay/",
+    "bcell_id": "http://iedb.org/assay/",
+    "tcell_id": "http://iedb.org/assay/",
+    "elution_id": "http://iedb.org/assay/",
     "epitope_id": "http://iedb.org/epitope/",
     "structure_id": "http://iedb.org/epitope/",
     "pubmed_id": "https://pubmed.ncbi.nlm.nih.gov/",
@@ -166,7 +169,9 @@ WITH RECURSIVE nonpeptides(n) AS (
       "select": [
           "count(distinct structure_id) AS epitope_count",
           "count(distinct source_antigen_label) AS antigen_count",
-          "count(distinct assay_id) AS assay_count",
+          "count(distinct tcell_id) AS tcell_count",
+          "count(distinct bcell_id) AS bcell_count",
+          "count(distinct elution_id) AS elution_count",
           "count(distinct reference_id) AS reference_count",
       ],
       "from": froms,
@@ -180,15 +185,18 @@ WITH RECURSIVE nonpeptides(n) AS (
     qs = build_query(q)
     print(qs)
     if qs in counts:
-        return counts[qs]
+        return deepcopy(counts[qs])
 
     cur.execute(qs)
     row = cur.fetchone()
     result["epitope"]["count"] = row["epitope_count"]
     result["antigen"]["count"] = row["antigen_count"]
-    result["assay"]["count"] = row["assay_count"]
+    result["assay"]["count"] = row["tcell_count"] + row["bcell_count"] + row["elution_count"]
+    result["assay"]["tcell_count"] = row["tcell_count"]
+    result["assay"]["bcell_count"] = row["bcell_count"]
+    result["assay"]["elution_count"] = row["elution_count"]
     result["reference"]["count"] = row["reference_count"]
-    counts[qs] = result
+    counts[qs] = deepcopy(result)
     return result
 
 
@@ -366,11 +374,36 @@ def search():
             q["group by"] = ["source_antigen_id"]
 
         elif tab == "assay":
-            q["select"] = [
-                "DISTINCT assay_id",
-                "reference_id",
-                "assay_type_id"
-            ]
+            nav = ["ul", {"class": "nav nav-tabs justify-content-center", "style": "margin-bottom: 1em"}]
+            tab2 = request.args.get("tab2", "tcell")
+            for table, title in [("tcell", "TCell Assays"), ("bcell", "BCell Assays"), ("elution", "MHC Ligand Assays")]:
+                cls = "nav-link"
+                if tab2 == table:
+                    cls += " active"
+                args["tab2"] = table
+                count = result["assay"][f"{table}_count"]
+                title += f" ({count})"
+                nav.append(
+                   ["li",
+                    {"class": "nav-item"}, 
+                    ["a",
+                     {"class": cls, "href": "?" + urlencode(args)},
+                     title]])
+            html.append(nav)
+
+            table = tab2
+            count = result["assay"][f"{table}_count"]
+            q["select"] = [f"DISTINCT {table}_id"]
+            q["where"].append(f"{table}_id IS NOT NULL")
+            query(cur, q)
+            rows = cur.fetchall()
+            ids = [str(row[f"{table}_id"]) for row in rows]
+            ids = ", ".join(ids)
+            q = {
+              "select": ["*"],
+              "from": [table],
+              "where": [f"{table}_id IN ({ids})"]
+            }
 
         elif tab == "reference":
             q["select"] = [
