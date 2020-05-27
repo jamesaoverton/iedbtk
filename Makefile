@@ -64,11 +64,9 @@ config: $(SOT_TSVS)
 #IEDB_TABLES := reference article article_dual submission \
 #               bcell mhc_bind mhc_elution tcell \
 #               object epitope
-IEDB_TABLES := simple_search
-IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv)
-
-#$(IEDB_TSVS): src/iedbtk/fetch.py references.tsv | cache/iedb
-#	python3 $< IEDB $(basename $(notdir $@)) --references $(word 2,$^) > $@
+IEDB_TABLES := simple_search \
+               molecule_finder_nonpep_tree
+IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv.gz)
 
 build/assays.tsv: conf/assays.tsv
 	tail -n+2 $< \
@@ -77,12 +75,14 @@ build/assays.tsv: conf/assays.tsv
 	| sort -n \
 	> $@
 
-build/temp.sql: $(IEDB_TSVS)
-	echo ".mode tabs" > $@
-	$(foreach X,$^,echo ".import $(X) $(basename $(notdir $X))" >> $@;)
-
-build/temp.db: build/temp.sql
-	sqlite3 $@ < $<
+build/temp.db: $(IEDB_TSVS)
+	rm -f $@
+	$(foreach X, $^, zcat $(X) \
+		| sed 's|http://purl.obolibrary.org/obo/CHEBI_|CHEBI:|g' \
+		| sed 's|http://iedb.org/by-role/|IEDBrole:|g' \
+		| sed 's|http://iedb.org/|IEDB:|g' \
+		| sqlite3 $@ -cmd ".mode tabs" ".import /dev/stdin $(basename $(basename $(notdir $(X))))"; \
+	)
 
 build/iedb.db: src/iedbtk/search.sql build/temp.db
 	rm -f $@

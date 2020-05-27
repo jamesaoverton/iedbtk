@@ -8,6 +8,7 @@ stdenv.mkDerivation {
     python38Full
     #python38Packages.cx_oracle
     sqlite
+    rlwrap
     #mariadb
     #oracle-instantclient
   ];

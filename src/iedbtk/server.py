@@ -144,12 +144,14 @@ def my_count(cur, args):
     if "sequence" in args and args["sequence"]:
         wheres.append(f"linear_sequence = '{args['sequence']}'")
     if "nonpeptide" in args and args["nonpeptide"]:
+        ids = args["nonpeptide"].split()
+        values = ", ".join([f"('{i}')" for i in ids])
         withs.append(f"""
 WITH RECURSIVE nonpeptides(n) AS (
-  VALUES ('{args['nonpeptide']}')
+  VALUES {values}
   UNION
   SELECT child FROM nonpeptide, nonpeptides
-  WHERE parent = nonpeptides.n)""")
+  WHERE parent = n)""")
         joins.append("JOIN nonpeptides n ON n.n = search.non_peptide_id")
 
     q = {
@@ -169,6 +171,7 @@ WITH RECURSIVE nonpeptides(n) AS (
 
     # Cache the counts
     qs = build_query(q)
+    print(qs)
     if qs in counts:
         return counts[qs]
 
@@ -271,16 +274,41 @@ def search():
                     ["p", "host finder"],
                     ["p", "disease finder"],
                     ["p", "qualitative measure"]]
-            tree = ["ul",
-                    ["li",
-                     ["a", {"href": href(args, nonpeptide="CHEBI:33521")}, "metal atom"],
-                     ["ul",
-                      ["li", ["a", {"href": href(args, nonpeptide="CHEBI:28112")}, "nickel atom"]],
-                      ["li", ["a", {"href": href(args, nonpeptide="CHEBI:27638")}, "cobalt atom"]]]]]
+            nonpeptide = args.get("nonpeptide","IEDB:non-peptidic-material").split()[0]
+
+            cur.execute(f"""SELECT DISTINCT child, label
+                    FROM nonpeptide
+                    JOIN label ON child = id
+                    WHERE parent = '{nonpeptide}'
+                    ORDER BY sort""")
+            children = ["ul"]
+            for row in cur:
+                children.append(["li", ["a", {"href": href(args, nonpeptide=row["child"])}, row["label"]]])
+
+            cur.execute(f"""WITH RECURSIVE ancestors(n) AS (
+                VALUES ('{nonpeptide}')
+                UNION
+                SELECT parent FROM nonpeptide, ancestors WHERE child = n
+              )
+              SELECT DISTINCT n AS parent, label FROM ancestors JOIN label ON n = id""")
+            rows = cur.fetchall()
+            current = rows.pop(0)
+            ancestors = ["ul",
+                         ["li",
+                          ["a", {"href": href(args, nonpeptide=nonpeptide)}, current["label"]],
+                          children]]
+            for row in rows:
+                ancestors = ["ul",
+                             ["li",
+                              ["a", {"href": href(args, nonpeptide=row["parent"])}, row["label"]],
+                              ancestors]]
+
+            tree = ancestors
+            tree.insert(1, {"id": "hierarchy", "class": "col-md"})
             html.append(["div",
                          {"class": "row"},
                          ["div", {"class": "col"}, form], 
-                         ["div", {"class": "col"}, tree]])
+                         tree])
 
         elif tab == "epitope":
             q["select"] = [
