@@ -15,7 +15,7 @@ data = tsv2rdf.readdir("data2")
 sqlite = "file:build/iedb.db?mode=ro"
 app = Flask(__name__, instance_relative_config=True)
 
-limit = 25
+limit = 100
 
 def dict_factory(cursor, row):
     d = {}
@@ -57,7 +57,7 @@ def style():
 @app.route('/')
 def index():
     html = ["div",
-            ["p", ["a", {"href": "/search/"}, "Search"]],
+            ["p", ["a", {"href": "/search/?positive_assays_only=true"}, "Search"]],
             #["p", ["a", {"href": "/sqlite-web/"}, "SQL Browser"]]
             ]
     return render_template("base.jinja2", html=tsv2rdf.render(html))
@@ -115,6 +115,9 @@ def make_table(rows):
     for row in rows:
         tr = ["tr"]
         for key, value in row.items():
+            if value is None:
+                tr.append(["td"])
+                continue
             value = str(value)
             if value and len(value) > 100:
                 value = value[0:100] + "..."
@@ -143,6 +146,8 @@ def my_count(cur, args):
     froms = ["search"]
     joins = []
     wheres = []
+    if "positive_assays_only" in args and args["positive_assays_only"].lower() == "true":
+        wheres.append("assay_positive IS TRUE")
     if "sequence" in args and args["sequence"]:
         wheres.append(f"linear_sequence = '{args['sequence']}'")
     if "nonpeptide" in args and args["nonpeptide"]:
@@ -160,7 +165,7 @@ WITH RECURSIVE nonpeptides(n) AS (
       "with": withs,
       "select": [
           "count(distinct structure_id) AS epitope_count",
-          "count(distinct source_antigen_id) AS antigen_count",
+          "count(distinct source_antigen_label) AS antigen_count",
           "count(distinct assay_id) AS assay_count",
           "count(distinct reference_id) AS reference_count",
       ],
@@ -204,7 +209,7 @@ def build_query(q):
     if "join" in q and q["join"]:
         result += "\n" + "\n".join(q["join"])
     if "where" in q and q["where"]:
-        result += "\nWHERE " + "\n  AND".join(q["where"])
+        result += "\nWHERE " + "\n  AND ".join(q["where"])
     if "group by" in q and q["group by"]:
         result += "\nGROUP BY " + ", ".join(q["group by"])
     if "order by" in q and q["order by"]:
@@ -270,8 +275,17 @@ def search():
             form = ["form",
                     {"id": "search-form"},
                     ["p",
-                     ["a", {"class": "btn btn-primary", "href": "/search/"}, "Clear"],
+                     ["a", {"class": "btn btn-primary", "href": "/search/?positive_assays_only=true"}, "Clear"],
                      ["input", {"class": "btn btn-success", "type": "submit", "value": "Search"}]],
+                    ["p", {"class": "form-group form-check"},
+                     ["input",
+                      {"type": "checkbox",
+                       "class": "form-check-input",
+                       "name": "positive_assays_only",
+                       "id": "positive_assays_only",
+                       "value": "true",
+                       "checked": request.args.get("positive_assays_only", "")}],
+                     ["label", {"for": "positive_assays_only"}, "Positive assays only"]],
                     ["p", "structure type list"],
                     ["p",
                      ["label", {"for": "sequence"}, "Epitope linear sequence"],
@@ -348,6 +362,7 @@ def search():
                 "count(distinct assay_id) AS assays",
                 "count(distinct reference_id) AS \"references\"",
             ]
+            q["where"].append("source_antigen_id IS NOT NULL")
             q["group by"] = ["source_antigen_id"]
 
         elif tab == "assay":

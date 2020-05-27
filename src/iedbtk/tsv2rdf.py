@@ -35,7 +35,11 @@ def render(element, depth=0):
         if tag == "a" and "href" not in attrs and "resource" in attrs:
             attrs["href"] = curie2href(attrs["resource"])
         for key, value in attrs.items():
-            output += f' {key}="{value}"'
+            if key in ["checked"]:
+                if value:
+                    output += f" {key}"
+            else:
+                output += f' {key}="{value}"'
 
     if tag in ["meta", "link"]:
         output += "/>"
