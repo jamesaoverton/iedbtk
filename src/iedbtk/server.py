@@ -3,6 +3,7 @@ import math
 import sqlite3
 import subprocess
 
+from copy import deepcopy
 from flask import Flask, request, redirect, Response, render_template
 from requests import get, post
 from urllib.parse import urlencode
@@ -43,11 +44,12 @@ def style():
 }
 #hierarchy {
   padding-left: 2.2em;
-  list-style-type: circle !important;
+  list-style-type: none !important;
 }
 #hierarchy ul {
-  padding-left: 0.5em;
-  list-style-type: circle !important;
+  padding-left: 1em;
+  list-style-type: none !important;
+  border-left: 1px dashed #ddd;
 }
 """, 200, {"Content-Type": "text/css"}
 
@@ -220,6 +222,16 @@ def query(cur, q):
     return cur.execute(qs)
 
 
+def build_tree(tree, root, args, content):
+    if root in tree:
+        result = ["li", ["a", {"href": href(args, nonpeptide=root)}, tree[root]["label"] if root in tree else root]]
+        for child in tree[root]["children"]:
+            result.append(build_tree(tree, child, args, content))
+        return ["ul", result]
+    else:
+        return deepcopy(content)
+
+
 @app.route('/search/')
 def search():
     with sqlite3.connect(sqlite, uri=True) as conn:
@@ -285,25 +297,32 @@ def search():
             for row in cur:
                 children.append(["li", ["a", {"href": href(args, nonpeptide=row["child"])}, row["label"]]])
 
-            cur.execute(f"""WITH RECURSIVE ancestors(n) AS (
-                VALUES ('{nonpeptide}')
+            cur.execute(f"""WITH RECURSIVE ancestors(p, c, s) AS (
+                VALUES ('{nonpeptide}', NULL, 0)
                 UNION
-                SELECT parent FROM nonpeptide, ancestors WHERE child = n
+                SELECT parent, child, sort FROM nonpeptide, ancestors WHERE child = p
               )
-              SELECT DISTINCT n AS parent, label FROM ancestors JOIN label ON n = id""")
+              SELECT DISTINCT p AS parent, c AS child, s AS sort, label
+              FROM ancestors JOIN label ON p = id""")
             rows = cur.fetchall()
             current = rows.pop(0)
             ancestors = ["ul",
                          ["li",
                           ["a", {"href": href(args, nonpeptide=nonpeptide)}, current["label"]],
                           children]]
+            tree = {}
             for row in rows:
-                ancestors = ["ul",
-                             ["li",
-                              ["a", {"href": href(args, nonpeptide=row["parent"])}, row["label"]],
-                              ancestors]]
-
-            tree = ancestors
+                parent = row["parent"]
+                if not parent in tree:
+                    tree[parent] = {"label": row["label"], "children": {row["child"]}}
+                else:
+                    tree[parent]["children"].add(row["child"])
+            root = "IEDB:non-peptidic-material"
+            content = ["li", current["label"]]
+            if children and len(children) > 1:
+                content.append(children)
+            content = ["ul", content]
+            tree = build_tree(tree, root, args, content)
             tree.insert(1, {"id": "hierarchy", "class": "col-md"})
             html.append(["div",
                          {"class": "row"},
