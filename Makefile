@@ -68,6 +68,8 @@ IEDB_TABLES := simple_search \
                tcell_list \
                bcell_list \
                mhc_elution_list \
+               tcell_receptor_list \
+               bcell_receptor_list \
                molecule_finder_nonpep_tree
 IEDB_TSVS := $(foreach X,$(IEDB_TABLES),cache/iedb/$(X).tsv.gz)
 

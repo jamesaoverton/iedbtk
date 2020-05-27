@@ -57,9 +57,14 @@ def style():
 @app.route('/')
 def index():
     html = ["div",
-            ["p", ["a", {"href": "/search/?positive_assays_only=true"}, "Search"]],
-            #["p", ["a", {"href": "/sqlite-web/"}, "SQL Browser"]]
-            ]
+            ["h1", "IEDBTK: Immune Epitope Database Toolkit"],
+            ["p",
+             "Prototype of new tools for working with data from the ",
+             ["a", {"href": "http://iedb.org"}, "Immune Epitope Database"],
+             "."],
+            ["ul",
+             ["li", ["a", {"href": "/search/?positive_assays_only=true"}, "Search"]],
+             ["li", ["a", {"href": "/sqlite-web/"}, "SQL Browser"]]]]
     return render_template("base.jinja2", html=tsv2rdf.render(html))
 
 links = {
@@ -70,6 +75,7 @@ links = {
     "elution_id": "http://iedb.org/assay/",
     "epitope_id": "http://iedb.org/epitope/",
     "structure_id": "http://iedb.org/epitope/",
+    "receptor_id": "http://iedb.org/receptor/",
     "pubmed_id": "https://pubmed.ncbi.nlm.nih.gov/",
 }
 
@@ -138,15 +144,15 @@ counts = {}
 def my_count(cur, args):
     result = {
         "search": {"title": "Search"},
-        "epitope": {"title": "Epitopes", "count": 1},
-        "antigen": {"title": "Antigens", "count": 2},
-        "assay": {"title": "Assays", "count": 3},
-        "receptor": {"title": "Receptor", "count": -1},
-        "reference": {"title": "References", "count": 5},
+        "epitope": {"title": "Epitopes"},
+        "antigen": {"title": "Antigens"},
+        "assay": {"title": "Assays"},
+        "receptor": {"title": "Receptors"},
+        "reference": {"title": "References"},
     }
 
     withs = []
-    froms = ["search"]
+    froms = ["search AS s"]
     joins = []
     wheres = []
     if "positive_assays_only" in args and args["positive_assays_only"].lower() == "true":
@@ -162,9 +168,9 @@ WITH RECURSIVE nonpeptides(n) AS (
   UNION
   SELECT child FROM nonpeptide, nonpeptides
   WHERE parent = n)""")
-        joins.append("JOIN nonpeptides n ON n.n = search.non_peptide_id")
+        joins.append("JOIN nonpeptides n ON n.n = s.non_peptide_id")
 
-    q = {
+    search_dict = {
       "with": withs,
       "select": [
           "count(distinct structure_id) AS epitope_count",
@@ -175,19 +181,27 @@ WITH RECURSIVE nonpeptides(n) AS (
           "count(distinct reference_id) AS reference_count",
       ],
       "from": froms,
-
       "join": joins,
       "where": wheres
     }
-    result["search"].update(q)
+    result["search"].update(search_dict)
+
+    tcr_dict = deepcopy(search_dict)
+    tcr_dict["select"] = ["count(distinct receptor_group_id) AS receptor_count"]
+    tcr_dict["from"] = ["tcr AS s"]
+    bcr_dict = deepcopy(tcr_dict)
+    bcr_dict["from"] = ["bcr AS s"]
 
     # Cache the counts
-    qs = build_query(q)
-    print(qs)
-    if qs in counts:
-        return deepcopy(counts[qs])
+    search_string = build_query(search_dict)
+    tcr_string = build_query(tcr_dict)
+    bcr_string = build_query(bcr_dict)
+    query_strings = "\n".join([search_string, tcr_string, bcr_string])
+    print(query_strings)
+    if query_strings in counts:
+        return deepcopy(counts[query_strings])
 
-    cur.execute(qs)
+    cur.execute(search_string)
     row = cur.fetchone()
     result["epitope"]["count"] = row["epitope_count"]
     result["antigen"]["count"] = row["antigen_count"]
@@ -196,7 +210,18 @@ WITH RECURSIVE nonpeptides(n) AS (
     result["assay"]["bcell_count"] = row["bcell_count"]
     result["assay"]["elution_count"] = row["elution_count"]
     result["reference"]["count"] = row["reference_count"]
-    counts[qs] = deepcopy(result)
+
+    cur.execute(tcr_string)
+    row = cur.fetchone()
+    result["receptor"]["tcr_count"] = row["receptor_count"]
+
+    cur.execute(bcr_string)
+    row = cur.fetchone()
+    result["receptor"]["bcr_count"] = row["receptor_count"]
+
+    result["receptor"]["count"] = result["receptor"]["tcr_count"] + result["receptor"]["bcr_count"]
+
+    counts[query_strings] = deepcopy(result)
     return result
 
 
@@ -250,12 +275,15 @@ def search():
     with sqlite3.connect(sqlite, uri=True) as conn:
         conn.row_factory = dict_factory
         cur = conn.cursor()
-        html = ["div", ["h2", "Search"]]
+        html = ["div"]
         nav = ["ul", {"class": "nav nav-tabs justify-content-center", "style": "margin-bottom: 1em"}]
+        nav.append(["li", {"class": "nav-item"}, ["a", {"class": "nav-link", "href": "/"}, "Home"]])
         tab = request.args.get("tab", "search")
         page = int(request.args.get("page", "1"))
         args = request.args.copy()
         args["page"] = 1
+        if "tab2" in args:
+            del args["tab2"]
         result = my_count(cur, request.args)
         count = result[tab].get("count", 0)
         q = result["search"]
@@ -340,7 +368,7 @@ def search():
                 else:
                     tree[parent]["children"].add(row["child"])
             root = "IEDB:non-peptidic-material"
-            content = ["li", current["label"]]
+            content = ["li", ["a", {"href": href(args, nonpeptide=nonpeptide)}, ["strong", current["label"]]]]
             if children and len(children) > 1:
                 content.append(children)
             content = ["ul", content]
@@ -357,10 +385,11 @@ def search():
                 "description",
                 "source_antigen_label",
                 "source_organism_label",
+                "count(distinct reference_id) AS \"references\"",
                 "count(distinct assay_id) AS assays",
-                "count(distinct reference_id) AS \"references\""
             ]
             q["group by"] = ["structure_id"]
+            q["order by"] = ["\"references\" DESC"]
 
         elif tab == "antigen":
             q["select"] = [
@@ -372,15 +401,17 @@ def search():
             ]
             q["where"].append("source_antigen_id IS NOT NULL")
             q["group by"] = ["source_antigen_id"]
+            q["order by"] = ["\"references\" DESC"]
 
         elif tab == "assay":
             nav = ["ul", {"class": "nav nav-tabs justify-content-center", "style": "margin-bottom: 1em"}]
             tab2 = request.args.get("tab2", "tcell")
-            for table, title in [("tcell", "TCell Assays"), ("bcell", "BCell Assays"), ("elution", "MHC Ligand Assays")]:
+            for table, title in [("tcell", "T Cell Assays"), ("bcell", "B Cell Assays"), ("elution", "MHC Ligand Assays")]:
                 cls = "nav-link"
                 if tab2 == table:
                     cls += " active"
                 args["tab2"] = table
+                args["page"] = 1
                 count = result["assay"][f"{table}_count"]
                 title += f" ({count})"
                 nav.append(
@@ -405,6 +436,38 @@ def search():
               "where": [f"{table}_id IN ({ids})"]
             }
 
+        elif tab == "receptor":
+            nav = ["ul", {"class": "nav nav-tabs justify-content-center", "style": "margin-bottom: 1em"}]
+            tab2 = request.args.get("tab2", "tcr")
+            for table, title in [("tcr", "T Cell Receptors"), ("bcr", "B Cell Receptors")]:
+                cls = "nav-link"
+                if tab2 == table:
+                    cls += " active"
+                args["tab2"] = table
+                args["page"] = 1
+                count = result["receptor"][f"{table}_count"]
+                title += f" ({count})"
+                nav.append(
+                   ["li",
+                    {"class": "nav-item"},
+                    ["a",
+                     {"class": cls, "href": "?" + urlencode(args)},
+                     title]])
+            html.append(nav)
+
+            table = tab2
+            count = result["receptor"][f"{table}_count"]
+            q["select"] = [
+                "DISTINCT receptor_group_id AS receptor_id",
+                "receptor_species_names",
+                "receptor_type",
+                "chain1_cdr3_sequence",
+                "chain2_cdr3_sequence",
+            ]
+            q["from"] = [f"{table} AS s"]
+            q["group by"] = ["receptor_group_id"]
+            q["order by"] = ["receptor_group_id ASC"]
+
         elif tab == "reference":
             q["select"] = [
                 "DISTINCT reference_id",
@@ -413,6 +476,7 @@ def search():
                 "reference_title",
                 "reference_date"
             ]
+            q["order by"] = ["reference_date DESC"]
 
         if tab != "search":
             query(cur, q)
