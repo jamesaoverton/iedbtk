@@ -4,7 +4,7 @@ import sqlite3
 import subprocess
 
 from copy import deepcopy
-from flask import Flask, request, redirect, Response, render_template
+from flask import Flask, request, redirect, Response, render_template, jsonify
 from requests import get, post
 from urllib.parse import urlencode
 import tsv2rdf
@@ -26,32 +26,6 @@ def dict_factory(cursor, row):
 @app.route('/favicon.ico')
 def favicon():
     return ""
-
-@app.route('/style.css')
-def style():
-    return """
-#annotations {
-  padding-left: 1em;
-  list-style-type: none !important;
-}
-#annotations ul {
-  padding-left: 3em;
-  list-style-type: circle !important;
-}
-#annotations ul ul {
-  padding-left: 2em;
-  list-style-type: none !important;
-}
-#hierarchy {
-  padding-left: 2.2em;
-  list-style-type: none !important;
-}
-#hierarchy ul {
-  padding-left: 1em;
-  list-style-type: none !important;
-  border-left: 1px dashed #ddd;
-}
-""", 200, {"Content-Type": "text/css"}
 
 
 @app.route('/')
@@ -308,34 +282,6 @@ def search():
 
         args = request.args.copy()
         if tab == "search":
-            form = ["form",
-                    {"id": "search-form"},
-                    ["p",
-                     ["a", {"class": "btn btn-primary", "href": "/search/?positive_assays_only=true"}, "Clear"],
-                     ["input", {"class": "btn btn-success", "type": "submit", "value": "Search"}]],
-                    ["p", {"class": "form-group form-check"},
-                     ["input",
-                      {"type": "checkbox",
-                       "class": "form-check-input",
-                       "name": "positive_assays_only",
-                       "id": "positive_assays_only",
-                       "value": "true",
-                       "checked": request.args.get("positive_assays_only", "")}],
-                     ["label", {"for": "positive_assays_only"}, "Positive assays only"]],
-                    ["p", "structure type list"],
-                    ["p",
-                     ["label", {"for": "sequence"}, "Epitope linear sequence"],
-                     ["input", {"id": "sequence", "name": "sequence", "type": "text", "placeholder": "SIINFEKL", "value": request.args.get("sequence", "")}]],
-                    ["p", "non-peptidic epitope finder"],
-                    ["p",
-                     ["label", {"for": "nonpeptide"}, "Non-Peptic Epitope"],
-                     ["input", {"id": "nonpeptide", "name": "nonpeptide", "type": "text", "placeholder": "CHEBI:28112", "value": request.args.get("nonpeptide", "")}]],
-                    ["p", "organism finder"],
-                    ["p", "antigen finder"],
-                    ["p", "mhc finder"],
-                    ["p", "host finder"],
-                    ["p", "disease finder"],
-                    ["p", "qualitative measure"]]
             nonpeptide = args.get("nonpeptide","IEDB:non-peptidic-material").split()[0]
 
             cur.execute(f"""SELECT DISTINCT child, label
@@ -374,9 +320,65 @@ def search():
             content = ["ul", content]
             tree = build_tree(tree, root, args, content)
             tree.insert(1, {"id": "hierarchy", "class": "col-md"})
+
+            selected_nonpeptide_id = args.get("nonpeptide","")
+            selected_nonpeptide_label = ""
+            if selected_nonpeptide_id:
+                selected_nonpeptide_label = current["label"]
+            form = ["form",
+                    {"id": "search-form", "class": "col"},
+                    ["p",
+                     ["a", {"class": "btn btn-primary", "href": "/search/?positive_assays_only=true"}, "Clear"],
+                     ["input", {"class": "btn btn-success", "type": "submit", "value": "Search"}]],
+                    ["p", {"class": "form-group form-check"},
+                     ["input",
+                      {"type": "checkbox",
+                       "class": "form-check-input",
+                       "name": "positive_assays_only",
+                       "id": "positive_assays_only",
+                       "value": "true",
+                       "checked": request.args.get("positive_assays_only", "")}],
+                     ["label", {"for": "positive_assays_only"}, "Positive assays only"]],
+                    ["p", "structure type list"],
+                    ["div",
+                     {"id": "nonpeptides",
+                      "class": "form-group row"},
+                     ["label", {"for": "sequence", "class": "col-sm-3 col-form-label"}, "Epitope linear sequence"],
+                     ["div",
+                      {"class": "col-sm-9"},
+                      ["input",
+                       {"id": "sequence",
+                        "class": "form-control",
+                        "name": "sequence",
+                        "type": "text",
+                        "placeholder": "SIINFEKL",
+                        "value": request.args.get("sequence", "")}]]],
+                    ["div",
+                     {"id": "nonpeptides",
+                      "class": "form-group row"},
+                     ["label", {"for": "nonpeptide", "class": "col-sm-3 col-form-label"}, "Non-Peptidic Epitope"],
+                     ["div",
+                      {"class": "col-sm-9"},
+                      ["input",
+                       {"id": "nonpeptide",
+                        "name": "nonpeptide",
+                        "type": "hidden",
+                        "value": selected_nonpeptide_id}],
+                      ["input",
+                       {"class": "typeahead form-control",
+                        "type": "text",
+                        #"placeholder": "alcohol",
+                        "value": selected_nonpeptide_label}]]],
+                    ["p", "organism finder"],
+                    ["p", "antigen finder"],
+                    ["p", "mhc finder"],
+                    ["p", "host finder"],
+                    ["p", "disease finder"],
+                    ["p", "qualitative measure"]]
+
             html.append(["div",
                          {"class": "row"},
-                         ["div", {"class": "col"}, form], 
+                         form,
                          tree])
 
         elif tab == "epitope":
@@ -483,6 +485,19 @@ def search():
             html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
 
         return render_template("base.jinja2", html=tsv2rdf.render(html))
+
+
+@app.route('/names.json')
+def names():
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        text = request.args.get("text")
+        if text:
+            cur.execute(f"""SELECT DISTINCT id, label AS name FROM label WHERE label LIKE '%{text}%' ORDER BY length(label) ASC LIMIT 100""")
+        else:
+            cur.execute(f"""SELECT DISTINCT id, label AS name FROM label WHERE label IN ('cardiolipin', 'alcohol', 'nickel atom')""")
+        return jsonify(cur.fetchall())
 
 
 # Proxy /sqlite-web to localhost 8080
