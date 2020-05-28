@@ -289,7 +289,7 @@ def search():
                     JOIN label ON child = id
                     WHERE parent = '{nonpeptide}'
                     ORDER BY sort""")
-            children = ["ul"]
+            children = ["ul", {"id": "children"}]
             for row in cur:
                 children.append(["li", ["a", {"href": href(args, nonpeptide=row["child"])}, row["label"]]])
 
@@ -314,12 +314,17 @@ def search():
                 else:
                     tree[parent]["children"].add(row["child"])
             root = "IEDB:non-peptidic-material"
-            content = ["li", ["a", {"href": href(args, nonpeptide=nonpeptide)}, ["strong", current["label"]]]]
-            if children and len(children) > 1:
-                content.append(children)
-            content = ["ul", content]
+            content = ["ul", ["li", ["a", {"href": href(args, nonpeptide=nonpeptide)}, ["strong", current["label"]]]]]
             tree = build_tree(tree, root, args, content)
             tree.insert(1, {"id": "hierarchy", "class": "col-md"})
+            bit = tree
+            lastbit = None
+            while isinstance(bit, list):
+                if bit[0] not in ["ul", "li"]:
+                    break
+                lastbit = bit
+                bit = bit[-1]
+            lastbit.append(children)
 
             selected_nonpeptide_id = args.get("nonpeptide","")
             selected_nonpeptide_label = ""
