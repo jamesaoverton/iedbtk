@@ -133,6 +133,8 @@ def my_count(cur, args):
         wheres.append("assay_positive IS TRUE")
     if "sequence" in args and args["sequence"]:
         wheres.append(f"linear_sequence = '{args['sequence']}'")
+    if "nonpeptide" in args and "nonpeptide_old" in args:
+        print("WARNING: Both nonptptide and nonpeptide_old are present!")
     if "nonpeptide" in args and args["nonpeptide"]:
         ids = args["nonpeptide"].split()
         values = ", ".join([f"('{i}')" for i in ids])
@@ -140,7 +142,17 @@ def my_count(cur, args):
 WITH RECURSIVE nonpeptides(n) AS (
   VALUES {values}
   UNION
-  SELECT child FROM nonpeptide, nonpeptides
+  SELECT child FROM nonpeptide_tree, nonpeptides
+  WHERE parent = n)""")
+        joins.append("JOIN nonpeptides n ON n.n = s.non_peptide_id")
+    elif "nonpeptide_old" in args and args["nonpeptide_old"]:
+        ids = args["nonpeptide_old"].split()
+        values = ", ".join([f"('{i}')" for i in ids])
+        withs.append(f"""
+WITH RECURSIVE nonpeptides(n) AS (
+  VALUES {values}
+  UNION
+  SELECT child FROM nonpeptide_old_tree, nonpeptides
   WHERE parent = n)""")
         joins.append("JOIN nonpeptides n ON n.n = s.non_peptide_id")
 
@@ -236,12 +248,76 @@ def query(cur, q):
 
 def build_tree(tree, root, args, content):
     if root in tree:
-        result = ["li", ["a", {"href": href(args, nonpeptide=root)}, tree[root]["label"] if root in tree else root]]
+        if "nonpeptide" in args:
+            args["nonpeptide"] = root
+        elif "nonpeptide_old" in args:
+            args["nonpeptide_old"] = root
+        result = ["li", ["a", {"href": href(args)}, tree[root]["label"] if root in tree else root]]
         for child in tree[root]["children"]:
             result.append(build_tree(tree, child, args, content))
         return ["ul", result]
     else:
         return deepcopy(content)
+
+
+def make_tree(cur, args, table, nonpeptide):
+    heading = f"{table} finder"
+    if table in request.args:
+        heading = ["strong", heading]
+    html = ["div",
+            {"id": "hierarchy", "class": "col"},
+            ["p", {"class": "text-center"}, heading]]
+
+    if "nonpeptide" in args:
+        del args["nonpeptide"]
+    if "nonpeptide_old" in args:
+        del args["nonpeptide_old"]
+    args[table] = nonpeptide
+    cur.execute(f"""WITH RECURSIVE ancestors(p, c, s) AS (
+        VALUES ('{nonpeptide}', NULL, 0)
+        UNION
+        SELECT parent, child, sort FROM {table}_tree, ancestors WHERE child = p
+      )
+      SELECT DISTINCT p AS parent, c AS child, s AS sort, label
+      FROM ancestors JOIN {table}_label ON p = id""")
+    ancestor_rows = cur.fetchall()
+    if not ancestor_rows:
+        html.append("Term not in finder")
+        return html
+
+    cur.execute(f"""SELECT DISTINCT child, label
+            FROM {table}_tree
+            JOIN {table}_label ON child = id
+            WHERE parent = '{nonpeptide}'
+            ORDER BY sort""")
+    children = ["ul", {"id": "children"}]
+    for row in cur:
+        args[table] = row["child"]
+        children.append(["li", ["a", {"href": href(args)}, row["label"]]])
+
+    args[table] = nonpeptide
+    current = ancestor_rows.pop(0)
+    tree = {}
+    for row in ancestor_rows:
+        parent = row["parent"]
+        if not parent in tree:
+            tree[parent] = {"label": row["label"], "children": {row["child"]}}
+        else:
+            tree[parent]["children"].add(row["child"])
+    root = "IEDB:non-peptidic-material"
+    content = ["ul", ["li", {"class": "current"}, ["a", {"href": href(args)}, ["strong", current["label"]]]]]
+    tree = build_tree(tree, root, args, content)
+    bit = tree
+    lastbit = None
+    while isinstance(bit, list):
+        if bit[0] not in ["ul", "li"]:
+            break
+        lastbit = bit
+        bit = bit[-1]
+    lastbit.append(children)
+
+    html.append(tree)
+    return html
 
 
 @app.route('/search/')
@@ -282,54 +358,23 @@ def search():
 
         args = request.args.copy()
         if tab == "search":
-            nonpeptide = args.get("nonpeptide","IEDB:non-peptidic-material").split()[0]
+            nonpeptide = args.get("nonpeptide")
+            if not nonpeptide:
+                nonpeptide = args.get("nonpeptide_old")
+            selected_nonpeptide_id = nonpeptide
+            if not nonpeptide:
+                nonpeptide = "IEDB:non-peptidic-material"
+            tree = make_tree(cur, args, "nonpeptide", nonpeptide)
+            tree2 = make_tree(cur, args, "nonpeptide_old", nonpeptide)
 
-            cur.execute(f"""SELECT DISTINCT child, label
-                    FROM nonpeptide
-                    JOIN label ON child = id
-                    WHERE parent = '{nonpeptide}'
-                    ORDER BY sort""")
-            children = ["ul", {"id": "children"}]
-            for row in cur:
-                children.append(["li", ["a", {"href": href(args, nonpeptide=row["child"])}, row["label"]]])
-
-            cur.execute(f"""WITH RECURSIVE ancestors(p, c, s) AS (
-                VALUES ('{nonpeptide}', NULL, 0)
-                UNION
-                SELECT parent, child, sort FROM nonpeptide, ancestors WHERE child = p
-              )
-              SELECT DISTINCT p AS parent, c AS child, s AS sort, label
-              FROM ancestors JOIN label ON p = id""")
-            rows = cur.fetchall()
-            current = rows.pop(0)
-            ancestors = ["ul",
-                         ["li",
-                          ["a", {"href": href(args, nonpeptide=nonpeptide)}, current["label"]],
-                          children]]
-            tree = {}
-            for row in rows:
-                parent = row["parent"]
-                if not parent in tree:
-                    tree[parent] = {"label": row["label"], "children": {row["child"]}}
-                else:
-                    tree[parent]["children"].add(row["child"])
-            root = "IEDB:non-peptidic-material"
-            content = ["ul", ["li", ["a", {"href": href(args, nonpeptide=nonpeptide)}, ["strong", current["label"]]]]]
-            tree = build_tree(tree, root, args, content)
-            tree.insert(1, {"id": "hierarchy", "class": "col-md"})
-            bit = tree
-            lastbit = None
-            while isinstance(bit, list):
-                if bit[0] not in ["ul", "li"]:
-                    break
-                lastbit = bit
-                bit = bit[-1]
-            lastbit.append(children)
-
-            selected_nonpeptide_id = args.get("nonpeptide","")
             selected_nonpeptide_label = ""
             if selected_nonpeptide_id:
-                selected_nonpeptide_label = current["label"]
+                cur.execute(f"""SELECT * FROM nonpeptide_label WHERE id = '{nonpeptide}'
+                  UNION
+                  SELECT * FROM nonpeptide_old_label WHERE id = '{nonpeptide}'""")
+                row = cur.fetchone()
+                selected_nonpeptide_id = row["id"]
+                selected_nonpeptide_label = row["label"]
             form = ["form",
                     {"id": "search-form", "class": "col"},
                     ["p",
@@ -384,7 +429,8 @@ def search():
             html.append(["div",
                          {"class": "row"},
                          form,
-                         tree])
+                         tree,
+                         tree2])
 
         elif tab == "epitope":
             q["select"] = [
@@ -501,12 +547,12 @@ def names():
         if text:
             cur.execute(f"""
 SELECT DISTINCT *
-FROM names
+FROM nonpeptide_name
 WHERE name LIKE '%{text}%'
 ORDER BY length(name)
 LIMIT 100""")
         else:
-            cur.execute(f"""SELECT DISTINCT * FROM names WHERE name IN ('cardiolipin', 'alcohol', 'nickel atom')""")
+            cur.execute(f"""SELECT DISTINCT * FROM nonpeptide_name WHERE name IN ('cardiolipin', 'alcohol', 'nickel atom')""")
         return jsonify(cur.fetchall())
 
 
