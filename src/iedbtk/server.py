@@ -269,7 +269,7 @@ def make_tree(cur, args, table, nonpeptide):
     if table in request.args:
         heading = ["strong", heading]
     html = ["div",
-            {"id": "hierarchy", "class": "col"},
+            {"class": "col"},
             ["p", {"class": "text-center"}, heading]]
 
     if "nonpeptide" in args:
@@ -294,7 +294,7 @@ def make_tree(cur, args, table, nonpeptide):
             JOIN {table}_label ON child = id
             WHERE parent = '{nonpeptide}'
             ORDER BY sort""")
-    children = ["ul", {"id": "children"}]
+    children = ["ul", {"class": "children"}]
     for row in cur:
         args[table] = row["child"]
         children.append(["li", ["a", {"href": href(args)}, row["label"]]])
@@ -311,6 +311,7 @@ def make_tree(cur, args, table, nonpeptide):
     root = "IEDB:non-peptidic-material"
     content = ["ul", ["li", {"class": "current"}, ["a", {"href": href(args)}, ["strong", current["label"]]]]]
     tree = build_tree(tree, root, args, content)
+    tree.insert(1, {"class": "hierarchy"})
     bit = tree
     lastbit = None
     while isinstance(bit, list):
@@ -365,7 +366,7 @@ def search():
             nonpeptide = args.get("nonpeptide")
             if not nonpeptide:
                 nonpeptide = args.get("nonpeptide_old")
-            selected_nonpeptide_id = nonpeptide
+            selected_nonpeptide_id = nonpeptide or ""
             if not nonpeptide:
                 nonpeptide = "IEDB:non-peptidic-material"
             tree = make_tree(cur, args, "nonpeptide", nonpeptide)
@@ -377,8 +378,9 @@ def search():
                   UNION
                   SELECT * FROM nonpeptide_old_label WHERE id = '{nonpeptide}'""")
                 row = cur.fetchone()
-                selected_nonpeptide_id = row["id"]
-                selected_nonpeptide_label = row["label"]
+                if row:
+                    selected_nonpeptide_id = row["id"]
+                    selected_nonpeptide_label = row["label"]
             form = ["form",
                     {"id": "search-form", "class": "col"},
                     ["p",

@@ -24,29 +24,27 @@
   padding-left: 2em;
   list-style-type: none !important;
 }
-#hierarchy {
+
+.hierarchy {
   padding-left: 0em;
   list-style-type: none !important;
 }
-#hierarchy ul {
+.hierarchy ul {
   padding-left: 1em;
   list-style-type: none !important;
   border-left: 1px dotted #ddd;
 }
-#hierarchy #children {
+.hierarchy .children {
   border-left: none;
   margin-left: 2em;
   text-indent: -1em;
 }
-#hierarchy #children li::before {
+.hierarchy .children li::before {
   content: "\2022";
   color: #ddd;
   display: inline-block;
   width: 0em;
   margin-left: -1em;
-}
-#hierarchy.active .current > a {
-  background-color: #eee;
 }
 
 #nonpeptides .tt-dataset {
