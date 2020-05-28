@@ -143,8 +143,8 @@ var nonpeptides = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.obj.nonword('name'),
   queryTokenizer: Bloodhound.tokenizers.nonword,
   sorter: function(a, b) {
-    A = a.length;
-    B = b.length;
+    A = a['name'].length;
+    B = b['name'].length;
     if (A < B) {
        return -1;
     }
@@ -155,7 +155,10 @@ var nonpeptides = new Bloodhound({
   },
   remote: {
     url: '/names.json?text=%QUERY',
-    wildcard: '%QUERY'
+    wildcard: '%QUERY',
+    transform : function(response) {
+        return nonpeptides.sorter(response)
+    }
   }
 });
 

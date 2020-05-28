@@ -494,9 +494,14 @@ def names():
         cur = conn.cursor()
         text = request.args.get("text")
         if text:
-            cur.execute(f"""SELECT DISTINCT id, label AS name FROM label WHERE label LIKE '%{text}%' ORDER BY length(label) ASC LIMIT 100""")
+            cur.execute(f"""
+SELECT DISTINCT *
+FROM names
+WHERE name LIKE '%{text}%'
+ORDER BY length(name)
+LIMIT 100""")
         else:
-            cur.execute(f"""SELECT DISTINCT id, label AS name FROM label WHERE label IN ('cardiolipin', 'alcohol', 'nickel atom')""")
+            cur.execute(f"""SELECT DISTINCT * FROM names WHERE name IN ('cardiolipin', 'alcohol', 'nickel atom')""")
         return jsonify(cur.fetchall())
 
 

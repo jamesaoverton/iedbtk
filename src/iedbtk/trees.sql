@@ -32,4 +32,16 @@ WHERE Display_Name IS NOT NULL;
 
 INSERT INTO names
 SELECT id, 'label', label
-FROM label
+FROM label;
+
+WITH split(id, label, word, str) AS (
+    SELECT Obi_Id, Display_Name, '', Secondary_Names || ', ' FROM source.molecule_finder_nonpep_tree
+    UNION
+    SELECT id, label,
+      substr(str, 0, instr(str, ', ')),
+      substr(str, instr(str, ', ') + 2)
+    FROM split WHERE str != ''
+)
+INSERT INTO names
+SELECT id, 'synonym', label || " (" || word || ")"
+FROM split WHERE word != '' AND word != label;
