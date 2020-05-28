@@ -38,7 +38,11 @@ def index():
              "."],
             ["ul",
              ["li", ["a", {"href": "/search/?positive_assays_only=true"}, "Search"]],
-             ["li", ["a", {"href": "/sqlite-web/"}, "SQL Browser"]]]]
+             ["li",
+              "SQL Browser",
+              ["ul",
+               ["li", ["a", {"href": "/iedb.db/"}, "iedbtk (iedb.db)"]],
+               ["li", ["a", {"href": "/source.db/"}, "web01-dev (source.db)"]]]]]]
     return render_template("base.jinja2", html=tsv2rdf.render(html))
 
 links = {
@@ -556,16 +560,17 @@ LIMIT 100""")
         return jsonify(cur.fetchall())
 
 
-# Proxy /sqlite-web to localhost 8080
-SITE_NAME="http://localhost:8080/sqlite-web/"
-@app.route('/sqlite-web/', defaults={"path": ""})
-@app.route('/sqlite-web/<path:path>', methods=["GET", "POST"])
-def proxy(path):
+# Proxy to sqlite-web
+ports = {"source": 8080, "iedb": 8081}
+@app.route('/<db>.db/', defaults={"path": ""})
+@app.route('/<db>.db/<path:path>', methods=["GET", "POST"])
+def proxy(db, path):
+    print(db, path)
     excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
     if request.method=='GET':
-        resp = get(f'{SITE_NAME}{path}')
+        resp = get(f'http://localhost:{ports[db]}/{db}.db/{path}')
     elif request.method=='POST':
-        resp = post(f'{SITE_NAME}{path}', request.form)
+        resp = get(f'http://localhost:{ports[db]}/{db}.db/{path}', request.form)
     headers = [(name, value) for (name, value) in resp.raw.headers.items() if name.lower() not in excluded_headers]
     response = Response(resp.content, resp.status_code, headers)
     return response

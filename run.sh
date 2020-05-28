@@ -2,8 +2,7 @@
 
 trap 'kill $(jobs -p)' EXIT
 
-#DB="build/iedb.db"
-DB="build/temp.db"
-sqlite_web --read-only "${DB}" --url-prefix "/sqlite-web" &
+sqlite_web --read-only "build/source.db" --url-prefix "/source.db" --port 8080 &
+sqlite_web --read-only "build/iedb.db" --url-prefix "/iedb.db"  --port 8081 &
 export FLASK_ENV=development
 src/iedbtk/server.py

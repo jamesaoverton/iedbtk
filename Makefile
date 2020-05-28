@@ -81,7 +81,7 @@ build/assays.tsv: conf/assays.tsv
 	| sort -n \
 	> $@
 
-build/temp.db: $(IEDB_TSVS)
+build/source.db: $(IEDB_TSVS)
 	rm -f $@
 	$(foreach X, $^, zcat $(X) \
 		| sed 's|http://purl.obolibrary.org/obo/CHEBI_|CHEBI:|g' \
@@ -90,7 +90,7 @@ build/temp.db: $(IEDB_TSVS)
 		| sqlite3 $@ -cmd ".mode tabs" ".import /dev/stdin $(basename $(basename $(notdir $(X))))"; \
 	)
 
-build/iedb.db: src/iedbtk/search.sql build/temp.db
+build/iedb.db: src/iedbtk/search.sql build/source.db
 	rm -f $@
 	sqlite3 $@ < $<
 

@@ -1,4 +1,4 @@
-ATTACH DATABASE "file:build/temp.db?mode=ro" AS source;
+ATTACH DATABASE "file:build/source.db?mode=ro" AS source;
 
 
 -- Make a search table
