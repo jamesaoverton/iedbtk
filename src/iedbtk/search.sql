@@ -57,10 +57,9 @@ CREATE INDEX search_structure_id ON search(structure_id);
 CREATE INDEX search_source_antigen_id ON search(source_antigen_id);
 CREATE INDEX search_assay_id ON search(assay_id);
 CREATE INDEX search_reference_id ON search(reference_id);
+CREATE INDEX search_reference_date ON search(reference_date);
 CREATE INDEX search_linear_sequence ON search(linear_sequence);
 CREATE INDEX search_non_peptide_id ON search(non_peptide_id);
-CREATE INDEX search_structure_assay_ids ON search(structure_id, assay_id);
-CREATE INDEX search_structure_reference_ids ON search(structure_id, reference_id);
 CREATE INDEX search_ids ON search(structure_id, source_antigen_id, assay_id, reference_id);
 
 

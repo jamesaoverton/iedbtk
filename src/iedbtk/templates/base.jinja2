@@ -148,8 +148,10 @@ $('#search-form').submit(function () {
 
 function jump(currentPage) {
   newPage = prompt("Jump to page", currentPage);
-  href = window.location.href.replace("page="+currentPage, "page="+newPage);
-  window.location.href = href
+  if (newPage) {
+    href = window.location.href.replace("page="+currentPage, "page="+newPage);
+    window.location.href = href
+  }
 };
 
 var nonpeptides = new Bloodhound({

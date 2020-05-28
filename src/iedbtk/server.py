@@ -187,7 +187,7 @@ WITH RECURSIVE nonpeptides(n) AS (
     tcr_string = build_query(tcr_dict)
     bcr_string = build_query(bcr_dict)
     query_strings = "\n".join([search_string, tcr_string, bcr_string])
-    print(query_strings)
+    #print(query_strings)
     if query_strings in counts:
         return deepcopy(counts[query_strings])
 
@@ -244,10 +244,32 @@ def build_query(q):
     return result
 
 
+# Limited size cache
+# Adapted from https://gist.github.com/TheWaWaR/8645401
+cache_limit = 1000
+cache_list = []
+cache_dict = {}
+def cache(key, value=None):
+    if value:
+        if len(cache_list) > cache_limit:
+            del cache_dict[cache_list.pop(0)]
+        cache_list.append(key)
+        cache_dict[key] = value
+        return value
+    elif key in cache_dict:
+        cache_list.append(cache_list.pop(cache_list.index(key)))
+        return cache_dict[key]
+    else:
+        return None
+
 def query(cur, q):
     qs = build_query(q)
-    print(qs)
-    return cur.execute(qs)
+    cached = cache(qs)
+    if cached:
+        return cached
+    rows = cur.execute(qs).fetchall()
+    cache(qs, rows)
+    return rows
 
 
 def build_tree(tree, root, args, content):
@@ -485,8 +507,7 @@ def search():
             count = result["assay"][f"{table}_count"]
             q["select"] = [f"DISTINCT {table}_id"]
             q["where"].append(f"{table}_id IS NOT NULL")
-            query(cur, q)
-            rows = cur.fetchall()
+            rows = query(cur, q)
             ids = [str(row[f"{table}_id"]) for row in rows]
             ids = ", ".join(ids)
             q = {
@@ -538,8 +559,8 @@ def search():
             q["order by"] = ["reference_date DESC"]
 
         if tab != "search":
-            query(cur, q)
-            html.append(make_paged_table(cur.fetchall(), count, dict(request.args)))
+            rows = query(cur, q)
+            html.append(make_paged_table(rows, count, dict(request.args)))
 
         return render_template("base.jinja2", html=tsv2rdf.render(html))
 
