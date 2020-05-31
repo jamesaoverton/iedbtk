@@ -258,7 +258,7 @@ def cache(key, value=None):
         return value
     elif key in cache_dict:
         cache_list.append(cache_list.pop(cache_list.index(key)))
-        return cache_dict[key]
+        return deepcopy(cache_dict[key])
     else:
         return None
 
@@ -606,7 +606,11 @@ def tree(tree):
 
 @app.route('/<tree>/<term_id>')
 def term(tree, term_id):
-    return tsv2rdf.terms2rdfa(data, tree, [term_id])
+    pr = "file:build/pr.db?mode=ro"
+    with sqlite3.connect(pr, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        return tsv2rdf.terms2rdfa(cur, tree, [term_id])
 
 
 if __name__ == '__main__':

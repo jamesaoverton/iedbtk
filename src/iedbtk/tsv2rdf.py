@@ -121,51 +121,66 @@ def readdir(path):
 
 def tree_label(data, treename, s):
     node = data[treename][s]
-    return "{label} ({epitope_sum} {epitope_count})".format(**node)
+    #return "{label} ({epitope_sum} {epitope_count})".format(**node)
+    return node.get("label", s)
 
 
 def row2o(data, row):
-    pc = row["pc"]
-    if row["oc"]:
-        oc = row["oc"]
-        return ["a",
-                {"rel": pc, "resource": oc},
-                data["labels"].get(oc, oc)]
-    elif row["oi"]:
-        oi = row["oi"]
-        return ["a", {"rel": pc, "href": oi}, oi]
-    elif row["ob"]:
-        ob = row["ob"]
-        return ["span", {"property": pc}, ob]
+    predicate = row["predicate"]
+    obj = row["object"]
+    if isinstance(obj, str):
+        if obj.startswith("<"):
+            iri = obj[1:-1]
+            return ["a", {"rel": predicate, "href": iri}, iri]
+        elif obj.startswith("_:"):
+            return ["span", {"property": predicate}, obj]
+        else:
+            return ["a",
+                    {"rel": predicate, "resource": obj},
+                    data["labels"].get(obj, obj)]
     # TODO: OWL expressions
     # TODO: other blank objects
     # TODO: datatypes
     # TODO: languages
-    elif row["ol"]:
-        ol = row["ol"]
-        return ["span", {"property": pc}, ol]
+    elif row["value"]:
+        return ["span", {"property": predicate}, row["value"]]
 
 
 def row2po(data, row):
-    pc = row["pc"]
-    P = data["labels"].get(pc, pc)
-    p = ["a", {"href": curie2href(pc)}, P]
+    predicate = row["predicate"]
+    P = data["labels"].get(predicate, predicate)
+    p = ["a", {"href": curie2href(predicate)}, P]
     o = row2o(data, row)
     return [p, o]
 
-def term2tree(data, treename, term_id):
-    tree = data[treename][term_id]
 
-    children = []
+def term2tree(data, treename, term_id):
+    if treename not in data or term_id not in data[treename]:
+        return ""
+
+    tree = data[treename][term_id]
+    child_labels = []
     for child in tree["children"]:
+        child_labels.append([child, data["labels"].get(child, child)])
+    child_labels.sort(key=lambda x: x[1].lower())
+
+    max_children = 100
+    children = []
+    for child, label in child_labels:
         if not child in data[treename]:
             continue
-        pc = "rdfs:subClassOf"
+        predicate = "rdfs:subClassOf"
         oc = child
         O = tree_label(data, treename, oc)
-        o = ["a", {"rev": pc, "resource": oc}, O]
-        children.append(["li", o])
-    children.sort(key=lambda x: x[1][2])
+        o = ["a", {"rev": predicate, "resource": oc}, O]
+        attrs = {}
+        if len(children) > max_children:
+            attrs["style"] = "display: none"
+        children.append(["li", attrs, o])
+        if len(children) == max_children:
+            total = len(tree["children"])
+            attrs = {"href": "javascript:show_children()"}
+            children.append(["li", {"id": "more"}, ["a", attrs, f"Click to show all {total} ..."]])
     children = ["ul", {"id": "children"}] + children
     if len(children) == 0:
         children = ""
@@ -177,10 +192,10 @@ def term2tree(data, treename, term_id):
     if term_id != "NCBITaxon:1":
         while node and i < 100:
             i += 1
-            pc = "rdfs:subClassOf"
+            predicate = "rdfs:subClassOf"
             oc = node
             O = tree_label(data, treename, node)
-            o = ["a", {"rel": pc, "resource": oc}, O]
+            o = ["a", {"rel": predicate, "resource": oc}, O]
             hierarchy = ["ul", ["li", o, hierarchy]]
             parents = data[treename][node]["parents"]
             if len(parents) == 0:
@@ -194,90 +209,138 @@ def term2tree(data, treename, term_id):
     return hierarchy
 
 
-def term2rdfa(data, treename, term_id):
-    if not term_id in data["stanzas"]:
-        return set(), "Not found"
-    stanza = data["stanzas"][term_id]
+def term2rdfa(cur, prefixes, treename, stanza, term_id):
     if len(stanza) == 0:
         return set(), "Not found"
-    tree = data[treename][term_id]
-
-    stanza.sort(key=lambda x: x["pc"])
-
     curies = set()
-    curies.update(tree["parents"])
-    curies.update(tree["children"])
+    tree = {}
+    cur.execute(f"""
+      WITH RECURSIVE ancestors(parent, child) AS (
+        VALUES ('{term_id}', NULL)
+        UNION
+        SELECT object AS parent, subject AS child
+        FROM statements
+        WHERE predicate = 'rdfs:subClassOf'
+          AND object = '{term_id}'
+        UNION
+        SELECT object AS parent, subject AS child
+        FROM statements, ancestors
+        WHERE ancestors.parent = statements.stanza
+          AND statements.predicate = 'rdfs:subClassOf'
+          AND statements.object NOT LIKE '_:%'
+      )
+      SELECT * FROM ancestors""")
+    for row in cur.fetchall():
+        #print(row)
+        parent = row["parent"]
+        if not parent:
+            continue
+        curies.add(parent)
+        if parent not in tree:
+            tree[parent] = {
+                "parents": [],
+                "children": [],
+            }
+        child = row["child"]
+        if not child:
+            continue
+        curies.add(child)
+        if child not in tree:
+            tree[child] = {
+                "parents": [],
+                "children": [],
+            }
+        tree[parent]["children"].append(child)
+        tree[child]["parents"].append(parent)
+    print("TREE ", len(tree.keys()))
+    data = {"labels": {}}
+    data[treename] = tree
+
+    stanza.sort(key=lambda x: x["predicate"])
+
     for row in stanza:
-        curies.add(row.get("sc"))
-        curies.add(row.get("pc"))
-        curies.add(row.get("oc"))
+        curies.add(row.get("subject"))
+        curies.add(row.get("predicate"))
+        curies.add(row.get("object"))
     curies.discard('')
+    curies.discard(None)
     ps = set()
     for curie in curies:
+        if not isinstance(curie, str) or len(curie) == 0 or curie[0] in ("_", "<"):
+            continue
         prefix, local = curie.split(":")
         ps.add(prefix)
+
+    labels = {}
+    ids = "', '".join(curies)
+    cur.execute(f"""SELECT subject, value
+      FROM statements
+      WHERE stanza IN ('{ids}')
+        AND predicate = 'rdfs:label'
+        AND value IS NOT NULL""")
+    for row in cur:
+        labels[row["subject"]] = row["value"]
+    data["labels"] = labels
+    for key in tree.keys():
+        if key in labels:
+            tree[key]["label"] = labels[key]
 
     label = term_id
     label_row = None
     for row in stanza:
-        pc = row["pc"]
-        if pc == "rdfs:label":
+        predicate = row["predicate"]
+        if predicate == "rdfs:label":
             label_row = row
-            label = label_row["ol"]
+            label = label_row["value"]
             break
 
     annotation_bnodes = set()
     for row in stanza:
-        if row["pc"] == "rdf:type" and row["oc"] == "owl:Axiom":
-            annotation_bnodes.add(row["sb"])
+        if row["predicate"] == "rdf:type" and row["object"] == "owl:Axiom":
+            annotation_bnodes.add(row["subject"])
     annotations = {}
     for row in stanza:
-        sb = row["sb"]
-        if sb not in annotation_bnodes:
+        subject = row["subject"]
+        if subject not in annotation_bnodes:
             continue
-        if sb not in annotations:
-            annotations[sb] = {
-                    "row": {"zn": row["zn"], "sc":"", "sb":""},
+        if subject not in annotations:
+            annotations[subject] = {
+                    "row": {"stanza": row["stanza"]},
                     "rows": []
                     }
-        pc = row["pc"]
-        if pc == "rdf:type":
+        predicate = row["predicate"]
+        if predicate == "rdf:type":
             continue
-        elif pc == "owl:annotatedSource":
-            if row["oc"]:
-                annotations[sb]["row"]["sc"] = row["oc"]
-            elif row["ob"]:
-                annotations[sb]["row"]["sb"] = row["ob"]
-            annotations[sb]["source"] = row
-        elif pc == "owl:annotatedProperty":
-            annotations[sb]["row"]["pc"] = row["oc"]
-            annotations[sb]["property"] = row
-        elif pc == "owl:annotatedTarget":
-            annotations[sb]["row"]["oi"] = row["oi"]
-            annotations[sb]["row"]["oc"] = row["oc"]
-            annotations[sb]["row"]["ob"] = row["ob"]
-            annotations[sb]["row"]["ol"] = row["ol"]
-            annotations[sb]["row"]["dc"] = row["dc"]
-            annotations[sb]["row"]["lt"] = row["lt"]
-            annotations[sb]["target"] = row
+        elif predicate == "owl:annotatedSource":
+            annotations[subject]["row"]["subject"] = row["object"]
+            annotations[subject]["source"] = row
+        elif predicate == "owl:annotatedProperty":
+            annotations[subject]["row"]["predicate"] = row["object"]
+            annotations[subject]["property"] = row
+        elif predicate == "owl:annotatedTarget":
+            annotations[subject]["row"]["object"] = row["object"]
+            annotations[subject]["row"]["value"] = row["value"]
+            annotations[subject]["row"]["datatype"] = row["datatype"]
+            annotations[subject]["row"]["language"] = row["language"]
+            annotations[subject]["target"] = row
         else:
-            annotations[sb]["rows"].append(row)
+            annotations[subject]["rows"].append(row)
 
-    sc = row["sc"]
-    si = curie2iri(data["prefixes"], sc)
+    subject = row["subject"]
+    si = curie2iri(prefixes, subject)
     S = label
 
     items = ["ul", {"id": "annotations", "class": "col-md"}]
     s2 = defaultdict(list)
     for row in stanza:
-        if row["sc"] == term_id:
-            s2[row["pc"]].append(row)
+        if row["subject"] == term_id:
+            s2[row["predicate"]].append(row)
     pcs = list(s2.keys())
     pcs.sort()
-    for pc in pcs:
-        p = ["a", {"href": curie2href(pc)}, data["labels"].get(pc, pc)]
+    for predicate in pcs:
+        p = ["a", {"href": curie2href(predicate)}, labels.get(predicate, predicate)]
         os = []
-        for row in s2[pc]:
+        for row in s2[predicate]:
             if row == label_row:
                 continue
             o = ["li", row2o(data, row)]
@@ -300,11 +363,11 @@ def term2rdfa(data, treename, term_id):
             os.append(o)
         items.append(["li", p, ["ul"] + os])
 
-    hierarchy = term2tree(data, "1_active", term_id)
-    h2 = term2tree(data, treename, term_id)
+    hierarchy = term2tree(data, treename, term_id)
+    h2 = "" # term2tree(data, treename, term_id)
 
     term = ["div",
-            {"resource": sc},
+            {"resource": subject},
             ["h2", S],
             ["a", {"href": si}, si],
             ["div",
@@ -315,19 +378,25 @@ def term2rdfa(data, treename, term_id):
     return ps, term
 
 
-def terms2rdfa(data, treename, term_ids):
+def terms2rdfa(cur, treename, term_ids):
+    cur.execute(f"SELECT * FROM prefix ORDER BY length(base) DESC")
+    all_prefixes = [(x["prefix"], x["base"]) for x in cur.fetchall()]
     ps = set()
     terms = []
     for term_id in term_ids:
-        p, t = term2rdfa(data, treename, term_id)
+        cur.execute(f"SELECT * FROM statements WHERE stanza = '{term_id}'")
+        stanza = cur.fetchall()
+        p, t = term2rdfa(cur, all_prefixes, treename, stanza, term_id)
         ps.update(p)
         terms.append(t)
 
     prefixes = []
-    for prefix, base in data["manual_prefixes"]:
-        if prefix in ps:
-            prefixes.append(f"  {prefix}: {base}")
+    #for prefix, base in data["manual_prefixes"]:
+    #    if prefix in ps:
+    #        prefixes.append(f"  {prefix}: {base}")
     prefixes = "\n" + "\n".join(prefixes)
+
+    data = {"labels": {}}
 
     head = ["head",
              ["meta", {"charset": "utf-8"}],
@@ -351,6 +420,20 @@ def terms2rdfa(data, treename, term_ids):
             " > ",
             treename
             ] + terms
+    body.append(["script",
+        {"src": "https://code.jquery.com/jquery-3.5.1.min.js",
+         "integrity": "sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=",
+         "crossorigin": "anonymous"}])
+    body.append(["script", {"type": "text/javascript"}, """function show_children() {
+        hidden = $('#children li:hidden').slice(0, 100);
+        if (hidden.length > 1) {
+            hidden.show();
+            setTimeout(show_children, 100);
+        } else {
+            console.log("DONE");
+        }
+        $('#more').hide();
+    }"""])
     html = ["html",
             {"prefixes": prefixes},
             head,
