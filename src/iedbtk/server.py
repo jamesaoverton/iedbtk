@@ -281,7 +281,10 @@ def build_tree(tree, root, args, content):
         result = ["li", ["a", {"href": href(args)}, tree[root]["label"] if root in tree else root]]
         for child in tree[root]["children"]:
             result.append(build_tree(tree, child, args, content))
-        return ["ul", result]
+        attrs = {}
+        if len(tree[root]["children"]) > 1:
+            attrs = {"class": "multiple-children"}
+        return ["ul", attrs, result]
     else:
         return deepcopy(content)
 
@@ -331,9 +334,10 @@ def make_tree(cur, args, table, nonpeptide):
         else:
             tree[parent]["children"].add(row["child"])
     root = "IEDB:non-peptidic-material"
-    content = ["ul", ["li", {"class": "current"}, ["a", {"href": href(args)}, ["strong", current["label"]]]]]
+    content = ["ul", {}, ["li", {"class": "current"}, ["a", {"href": href(args)}, ["strong", current["label"]]]]]
     tree = build_tree(tree, root, args, content)
-    tree.insert(1, {"class": "hierarchy"})
+    cls = tree[1].get("class", "")
+    tree[1]["class"] = cls + " hierarchy"
     bit = tree
     lastbit = None
     while isinstance(bit, list):
