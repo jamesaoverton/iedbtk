@@ -217,6 +217,7 @@ function go(table, value) {
   if ($('#positive_assays_only').prop('checked')) {
     q['positive_assays_only'] = 'true'
   }
+  table = table.replace('_all', '');
   q[table] = value
   window.location = "?" + query(q);
 };

@@ -102,3 +102,10 @@ FROM split WHERE word != '' AND word != label;
 CREATE INDEX nonpeptide_old_tree_parent ON nonpeptide_old_tree(parent);
 CREATE INDEX nonpeptide_old_tree_child ON nonpeptide_old_tree(child);
 CREATE INDEX nonpeptide_old_label_id ON nonpeptide_old_label(id);
+
+
+DROP VIEW IF EXISTS nonpeptide_all_name;
+CREATE VIEW nonpeptide_all_name AS
+SELECT * FROM nonpeptide_name
+UNION ALL
+SELECT * FROM nonpeptide_old_name;

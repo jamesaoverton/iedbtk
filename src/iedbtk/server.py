@@ -296,20 +296,20 @@ def make_tree(cur, args, table, selected_id, selected_label):
         cls += " active-finder"
         heading = ["strong", heading]
 
+    search = ["div",
+              ["input",
+               {"id": f"{table}-hidden",
+                "name": table,
+                "type": "hidden",
+                "value": selected_id}],
+              ["input",
+               {"id": f"{table}-typeahead",
+                "class": "typeahead form-control",
+                "type": "text",
+                "value": selected_label}]]
     html = ["div",
             {"class": cls},
-            ["p", {"class": "text-center"}, heading],
-            ["div",
-             ["input",
-              {"id": f"{table}-hidden",
-               "name": table,
-               "type": "hidden",
-               "value": selected_id}],
-             ["input",
-              {"id": f"{table}-typeahead",
-               "class": "typeahead form-control",
-               "type": "text",
-               "value": selected_label}]]]
+            ["p", {"class": "text-center"}, heading]]
 
     if "nonpeptide" in args:
         del args["nonpeptide"]
@@ -447,7 +447,22 @@ def search():
                         "name": "sequence",
                         "type": "text",
                         "placeholder": "SIINFEKL",
-                        "value": request.args.get("sequence", "")}]]]]
+                        "value": request.args.get("sequence", "")}]]],
+                    ["div",
+                     {"class": "form-group row"},
+                     ["label", {"for": "nonpeptide-typeahead", "class": "col-sm-3 col-form-label"}, "Non-Peptidic Epitope"],
+                     ["div",
+                      {"class": "col-sm-9"},
+                      ["input",
+                       {"id": "nonpeptide_all-hidden",
+                        "name": "nonpeptide",
+                        "type": "hidden",
+                        "value": selected_nonpeptide_id}],
+                      ["input",
+                       {"id": "nonpeptide_all-typeahead",
+                        "class": "typeahead form-control",
+                        "type": "text",
+                        "value": selected_nonpeptide_label}]]]]
 
             html.append(["div",
                          {"class": "row"},
@@ -571,9 +586,9 @@ def names():
             cur.execute(f"""
 SELECT DISTINCT *
 FROM {table}_name
-WHERE name LIKE '%{text}%'
+WHERE name LIKE ?
 ORDER BY length(name)
-LIMIT 100""")
+LIMIT 100""", (f"%{text}%",))
         else:
             cur.execute(f"""
 SELECT DISTINCT *
