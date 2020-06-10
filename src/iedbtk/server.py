@@ -289,21 +289,35 @@ def build_tree(tree, root, args, content):
         return deepcopy(content)
 
 
-def make_tree(cur, args, table, nonpeptide):
+def make_tree(cur, args, table, selected_id, selected_label):
     heading = f"{table} finder"
-    if table in request.args:
+    cls = "col"
+    if table in args:
+        cls += " active-finder"
         heading = ["strong", heading]
+
     html = ["div",
-            {"class": "col"},
-            ["p", {"class": "text-center"}, heading]]
+            {"class": cls},
+            ["p", {"class": "text-center"}, heading],
+            ["div",
+             ["input",
+              {"id": f"{table}-hidden",
+               "name": table,
+               "type": "hidden",
+               "value": selected_id}],
+             ["input",
+              {"id": f"{table}-typeahead",
+               "class": "typeahead form-control",
+               "type": "text",
+               "value": selected_label}]]]
 
     if "nonpeptide" in args:
         del args["nonpeptide"]
     if "nonpeptide_old" in args:
         del args["nonpeptide_old"]
-    args[table] = nonpeptide
+    args[table] = selected_id
     cur.execute(f"""WITH RECURSIVE ancestors(p, c, s) AS (
-        VALUES ('{nonpeptide}', NULL, 0)
+        VALUES ('{selected_id}', NULL, 0)
         UNION
         SELECT parent, child, sort FROM {table}_tree, ancestors WHERE child = p
       )
@@ -317,14 +331,14 @@ def make_tree(cur, args, table, nonpeptide):
     cur.execute(f"""SELECT DISTINCT child, label
             FROM {table}_tree
             JOIN {table}_label ON child = id
-            WHERE parent = '{nonpeptide}'
+            WHERE parent = '{selected_id}'
             ORDER BY sort""")
     children = ["ul", {"class": "children"}]
     for row in cur:
         args[table] = row["child"]
         children.append(["li", ["a", {"href": href(args)}, row["label"]]])
 
-    args[table] = nonpeptide
+    args[table] = selected_id
     current = ancestor_rows.pop(0)
     tree = {}
     for row in ancestor_rows:
@@ -395,9 +409,6 @@ def search():
             selected_nonpeptide_id = nonpeptide or ""
             if not nonpeptide:
                 nonpeptide = "IEDB:non-peptidic-material"
-            tree = make_tree(cur, args, "nonpeptide", nonpeptide)
-            tree2 = make_tree(cur, args, "nonpeptide_old", nonpeptide)
-
             selected_nonpeptide_label = ""
             if selected_nonpeptide_id:
                 cur.execute(f"""SELECT * FROM nonpeptide_label WHERE id = '{nonpeptide}'
@@ -407,6 +418,10 @@ def search():
                 if row:
                     selected_nonpeptide_id = row["id"]
                     selected_nonpeptide_label = row["label"]
+
+            tree = make_tree(cur, request.args.copy(), "nonpeptide", selected_nonpeptide_id, selected_nonpeptide_label)
+            tree2 = make_tree(cur, request.args.copy(), "nonpeptide_old", selected_nonpeptide_id, selected_nonpeptide_label)
+
             form = ["form",
                     {"id": "search-form", "class": "col"},
                     ["p",
@@ -421,10 +436,8 @@ def search():
                        "value": "true",
                        "checked": request.args.get("positive_assays_only", "")}],
                      ["label", {"for": "positive_assays_only"}, "Positive assays only"]],
-                    ["p", "structure type list"],
                     ["div",
-                     {"id": "nonpeptides",
-                      "class": "form-group row"},
+                     {"class": "form-group row"},
                      ["label", {"for": "sequence", "class": "col-sm-3 col-form-label"}, "Epitope linear sequence"],
                      ["div",
                       {"class": "col-sm-9"},
@@ -434,29 +447,7 @@ def search():
                         "name": "sequence",
                         "type": "text",
                         "placeholder": "SIINFEKL",
-                        "value": request.args.get("sequence", "")}]]],
-                    ["div",
-                     {"id": "nonpeptides",
-                      "class": "form-group row"},
-                     ["label", {"for": "nonpeptide", "class": "col-sm-3 col-form-label"}, "Non-Peptidic Epitope"],
-                     ["div",
-                      {"class": "col-sm-9"},
-                      ["input",
-                       {"id": "nonpeptide",
-                        "name": "nonpeptide",
-                        "type": "hidden",
-                        "value": selected_nonpeptide_id}],
-                      ["input",
-                       {"class": "typeahead form-control",
-                        "type": "text",
-                        #"placeholder": "alcohol",
-                        "value": selected_nonpeptide_label}]]],
-                    ["p", "organism finder"],
-                    ["p", "antigen finder"],
-                    ["p", "mhc finder"],
-                    ["p", "host finder"],
-                    ["p", "disease finder"],
-                    ["p", "qualitative measure"]]
+                        "value": request.args.get("sequence", "")}]]]]
 
             html.append(["div",
                          {"class": "row"},
@@ -574,16 +565,21 @@ def names():
     with sqlite3.connect(sqlite, uri=True) as conn:
         conn.row_factory = dict_factory
         cur = conn.cursor()
+        table = request.args.get("table", "nonpeptide")
         text = request.args.get("text")
         if text:
             cur.execute(f"""
 SELECT DISTINCT *
-FROM nonpeptide_name
+FROM {table}_name
 WHERE name LIKE '%{text}%'
 ORDER BY length(name)
 LIMIT 100""")
         else:
-            cur.execute(f"""SELECT DISTINCT * FROM nonpeptide_name WHERE name IN ('cardiolipin', 'alcohol', 'nickel atom')""")
+            cur.execute(f"""
+SELECT DISTINCT *
+FROM {table}_name
+ORDER BY length(name)
+LIMIT 100""")
         return jsonify(cur.fetchall())
 
 

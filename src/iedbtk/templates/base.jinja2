@@ -156,55 +156,79 @@ function jump(currentPage) {
   }
 };
 
-var nonpeptides = new Bloodhound({
-  datumTokenizer: Bloodhound.tokenizers.obj.nonword('name'),
-  queryTokenizer: Bloodhound.tokenizers.nonword,
-  sorter: function(a, b) {
-    A = a['name'].length;
-    B = b['name'].length;
-    if (A < B) {
-       return -1;
-    }
-    else if (A > B) {
-       return 1;
-    }
-    else return 0;
-  },
-  remote: {
-    url: '/names.json?text=%QUERY',
-    wildcard: '%QUERY',
-    transform : function(response) {
-        return nonpeptides.sorter(response)
-    }
+function configure_typeahead(node) {
+  if (!node.id || !node.id.endsWith("-typeahead")) {
+    return;
   }
-});
+  table = node.id.replace("-typeahead", "")
 
-function nonpeptidesWithDefaults(q, sync) {
-  if (q === '') {
-    sync(nonpeptides.get('cardiolipin', 'alcohol', 'nickel atom'));
-  }
-  else {
-    nonpeptides.search(q, sync);
-  }
+  var bloodhound = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.obj.nonword('name'),
+    queryTokenizer: Bloodhound.tokenizers.nonword,
+    sorter: function(a, b) {
+      A = a['name'].length;
+      B = b['name'].length;
+      if (A < B) {
+         return -1;
+      }
+      else if (A > B) {
+         return 1;
+      }
+      else return 0;
+    },
+    remote: {
+      url: '/names.json?table=' + table + '&text=%QUERY',
+      wildcard: '%QUERY',
+      transform : function(response) {
+          return bloodhound.sorter(response)
+      }
+    }
+  });
+
+  $(node).typeahead({
+    minLength: 0,
+    hint: false,
+    highlight: true
+  }, {
+    name: table,
+    source: bloodhound,
+    display: 'name',
+    limit: 40
+  });
+
+  $(node).bind('click', function(e) {
+    $(node).select();
+  });
+  $(node).bind('typeahead:select', function(ev, suggestion) {
+    $(node).prev().val(suggestion['id']);
+    go(table, suggestion['id'])
+  });
+  $(node).bind('keypress',function(e) {
+    if(e.which == 13) {
+      go(table, $('#' + table + '-hidden').val());
+    }
+  });
 };
 
-$('#nonpeptides .typeahead').typeahead({
-  minLength: 0,
-  hint: false,
-  highlight: true
-}, {
-  name: 'nonpeptides',
-  source: nonpeptides, // nonpeptidesWithDefaults,
-  display: 'name',
-  limit: 40
-});
+$('.typeahead').each(function() { configure_typeahead(this); });
 
-$('#nonpeptides .typeahead').bind('click', function(e) {
-  $(this).select();
-});
-$('#nonpeptides .typeahead').bind('typeahead:select', function(ev, suggestion) {
-  $('#nonpeptide').val(suggestion['id']);
-});
+function go(table, value) {
+  q = {}
+  if ($('#positive_assays_only').prop('checked')) {
+    q['positive_assays_only'] = 'true'
+  }
+  q[table] = value
+  window.location = "?" + query(q);
+};
+
+function query(obj) {
+  var str = [];
+  for (var p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+}
     </script>
 
   </body>
