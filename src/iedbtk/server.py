@@ -272,15 +272,12 @@ def query(cur, q):
     return rows
 
 
-def build_tree(tree, root, args, content):
+def build_tree(tree, field, root, args, content):
     if root in tree:
-        if "nonpeptide" in args:
-            args["nonpeptide"] = root
-        elif "nonpeptide_old" in args:
-            args["nonpeptide_old"] = root
+        args[field] = root
         result = ["li", ["a", {"href": href(args)}, tree[root]["label"] if root in tree else root]]
         for child in tree[root]["children"]:
-            result.append(build_tree(tree, child, args, content))
+            result.append(build_tree(tree, field, child, args, content))
         attrs = {}
         if len(tree[root]["children"]) > 1:
             attrs = {"class": "multiple-children"}
@@ -289,10 +286,10 @@ def build_tree(tree, root, args, content):
         return deepcopy(content)
 
 
-def make_tree(cur, args, table, selected_id, selected_label):
+def make_tree(cur, args, field, table, selected_id, selected_label):
     heading = f"{table} finder"
     cls = "col"
-    if table in args:
+    if field in args:
         cls += " active-finder"
         heading = ["strong", heading]
 
@@ -315,7 +312,7 @@ def make_tree(cur, args, table, selected_id, selected_label):
         del args["nonpeptide"]
     if "nonpeptide_old" in args:
         del args["nonpeptide_old"]
-    args[table] = selected_id
+    args[field] = selected_id
     cur.execute(f"""WITH RECURSIVE ancestors(p, c, s) AS (
         VALUES ('{selected_id}', NULL, 0)
         UNION
@@ -327,18 +324,19 @@ def make_tree(cur, args, table, selected_id, selected_label):
     if not ancestor_rows:
         html.append("Term not in finder")
         return html
+    print(ancestor_rows)
 
     cur.execute(f"""SELECT DISTINCT child, label
             FROM {table}_tree
             JOIN {table}_label ON child = id
             WHERE parent = '{selected_id}'
-            ORDER BY sort""")
+            ORDER BY sort, label""")
     children = ["ul", {"class": "children"}]
     for row in cur:
-        args[table] = row["child"]
+        args[field] = row["child"]
         children.append(["li", ["a", {"href": href(args)}, row["label"]]])
 
-    args[table] = selected_id
+    args[field] = selected_id
     current = ancestor_rows.pop(0)
     tree = {}
     for row in ancestor_rows:
@@ -348,8 +346,10 @@ def make_tree(cur, args, table, selected_id, selected_label):
         else:
             tree[parent]["children"].add(row["child"])
     root = "IEDB:non-peptidic-material"
+    if table.startswith("molecule"):
+        root = "BFO:0000040"
     content = ["ul", {}, ["li", {"class": "current"}, ["a", {"href": href(args)}, ["strong", current["label"]]]]]
-    tree = build_tree(tree, root, args, content)
+    tree = build_tree(tree, field, root, args, content)
     cls = tree[1].get("class", "")
     tree[1]["class"] = cls + " hierarchy"
     bit = tree
@@ -363,6 +363,21 @@ def make_tree(cur, args, table, selected_id, selected_label):
 
     html.append(tree)
     return html
+
+
+@app.route('/finder/<name>')
+def finder(name):
+    with sqlite3.connect(sqlite, uri=True) as conn:
+        conn.row_factory = dict_factory
+        cur = conn.cursor()
+        node_id = request.args.get("id", "IEDB:non-peptidic-material")
+        node_label = ""
+        cur.execute(f"""SELECT * FROM {name}_label WHERE id = ?""", (node_id,))
+        row = cur.fetchone()
+        if row:
+            node_label = row["label"]
+        html = make_tree(cur, request.args.copy(), "id", name, node_id, node_label)
+        return render_template("base.jinja2", html=tsv2rdf.render(html))
 
 
 @app.route('/search/')
@@ -409,6 +424,7 @@ def search():
             selected_nonpeptide_id = nonpeptide or ""
             if not nonpeptide:
                 nonpeptide = "IEDB:non-peptidic-material"
+
             selected_nonpeptide_label = ""
             if selected_nonpeptide_id:
                 cur.execute(f"""SELECT * FROM nonpeptide_label WHERE id = '{nonpeptide}'
@@ -418,9 +434,11 @@ def search():
                 if row:
                     selected_nonpeptide_id = row["id"]
                     selected_nonpeptide_label = row["label"]
+            node_id = selected_nonpeptide_id or "IEDB:non-peptidic-material"
+            node_label = selected_nonpeptide_label or "non-peptidic material"
 
-            tree = make_tree(cur, request.args.copy(), "nonpeptide", selected_nonpeptide_id, selected_nonpeptide_label)
-            tree2 = make_tree(cur, request.args.copy(), "nonpeptide_old", selected_nonpeptide_id, selected_nonpeptide_label)
+            tree = make_tree(cur, request.args.copy(), "nonpeptide", "nonpeptide", node_id, node_label)
+            tree2 = make_tree(cur, request.args.copy(), "nonpeptide_old", "nonpeptide_old", node_id, node_label)
 
             form = ["form",
                     {"id": "search-form", "class": "col"},
